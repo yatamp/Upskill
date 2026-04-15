@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Monitoring & Observability — Upskill</title>
+  <link rel="stylesheet" href="../css/style.css" />
+  <style>
+    .mark-done-bar { position: sticky; top: 0; background: var(--bg); border-bottom: 1px solid var(--border); padding: 0.75rem 1.5rem; display: flex; align-items: center; justify-content: space-between; z-index: 10; }
+    .mark-done-bar a { color: var(--accent2); text-decoration: none; font-size: 0.85rem; }
+    #mark-done-btn { background: var(--accent); color: #fff; border: none; padding: 0.5rem 1.25rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 600; }
+    #mark-done-btn:hover:not(:disabled) { background: #4f46e5; }
+    .concept-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 1rem; margin-top: 0.75rem; }
+    .concept-card { background: #12141e; border: 1px solid var(--border); border-radius: 8px; padding: 1rem; }
+    .concept-card h4 { font-size: 0.88rem; color: var(--accent2); margin-bottom: 0.4rem; }
+    .concept-card p { font-size: 0.82rem; color: var(--muted); line-height: 1.6; }
+    .cmd-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .cmd-table th { text-align: left; color: var(--muted); font-size: 0.75rem; text-transform: uppercase; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--border); }
+    .cmd-table td { padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.6; }
+    .cmd-table tr:last-child td { border-bottom: none; }
+    .quiz-q { margin-bottom: 1rem; }
+    .quiz-q p { font-size: 0.9rem; margin-bottom: 0.5rem; }
+    .quiz-q details summary { cursor: pointer; color: var(--accent2); font-size: 0.85rem; }
+    .quiz-q details p { margin-top: 0.5rem; font-size: 0.85rem; color: var(--muted); line-height: 1.6; }
+    .resource-row { display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.6rem 0; border-bottom: 1px solid var(--border); }
+    .resource-row:last-child { border-bottom: none; }
+    .resource-type { font-size: 0.7rem; padding: 0.18rem 0.5rem; border-radius: 4px; font-weight: 600; flex-shrink: 0; margin-top: 0.1rem; }
+    .rt-free { background: #1a2e1a; color: var(--green); }
+    .rt-video { background: #1a1a2e; color: var(--accent2); }
+    .rt-docs { background: #1f1a2e; color: #a78bfa; }
+    .rt-practice { background: #2a1f00; color: var(--yellow); }
+    .tip-box { background: #12201a; border: 1px solid #22c55e33; border-radius: 8px; padding: 0.9rem 1rem; margin: 0.75rem 0; font-size: 0.85rem; color: var(--text); line-height: 1.6; }
+    .tip-box strong { color: var(--green); }
+  </style>
+</head>
+<body>
+  <div class="mark-done-bar">
+    <a href="../index.html">← Back to Dashboard</a>
+    <button id="mark-done-btn" data-key="topics/monitoring.html">Mark as Done</button>
+  </div>
+
+  <div class="topic-page">
+    <div class="breadcrumb"><a href="../index.html">Dashboard</a> / Track 6: Observability / Monitoring & Logging</div>
+    <h1 class="topic-title">Monitoring &amp; Observability</h1>
+    <p class="topic-meta">Level: Intermediate → Advanced &nbsp;·&nbsp; Prometheus · Grafana · Datadog · Structured Logging · Alerting</p>
+
+    <div class="section">
+      <h3>The Three Pillars of Observability</h3>
+      <div class="concept-grid">
+        <div class="concept-card">
+          <h4>Metrics</h4>
+          <p>Numeric measurements over time. Low cardinality, cheap to store. Tell you WHAT is wrong at a high level. Examples: request rate, error rate, latency p99, CPU%, memory, Kafka consumer lag.</p>
+        </div>
+        <div class="concept-card">
+          <h4>Logs</h4>
+          <p>Timestamped records of discrete events. High cardinality, expensive to store/query. Tell you WHAT happened and the context. Structured logs (JSON) >> plain text for querying.</p>
+        </div>
+        <div class="concept-card">
+          <h4>Traces</h4>
+          <p>A request's journey through distributed services. Shows WHERE time was spent across service boundaries. Essential for microservices. Tools: Jaeger, Zipkin, Datadog APM, AWS X-Ray.</p>
+        </div>
+        <div class="concept-card">
+          <h4>The workflow</h4>
+          <p>Alert fires on a metric → jump to dashboard for context → correlate with logs to find the specific error → traces show which downstream service is slow. Each pillar answers a different question.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Prometheus — Metrics Collection</h3>
+      <p>Prometheus is a pull-based metrics system. It scrapes HTTP endpoints (<code>/metrics</code>) on a schedule and stores time-series data.</p>
+      <br/>
+      <div class="concept-grid">
+        <div class="concept-card">
+          <h4>4 Metric Types</h4>
+          <p><strong>Counter:</strong> only goes up (requests_total, errors_total). <strong>Gauge:</strong> up/down (memory_bytes, queue_depth). <strong>Histogram:</strong> bucketed distribution (request_duration_seconds). <strong>Summary:</strong> pre-calculated quantiles (use histogram instead — more flexible).</p>
+        </div>
+        <div class="concept-card">
+          <h4>Labels</h4>
+          <p>Key-value pairs on metrics. <code>http_requests_total{method="GET", status="200", service="auth"}</code>. Labels enable slicing — aggregate by service, endpoint, status. Warning: high-cardinality labels (user_id, request_id) blow up storage.</p>
+        </div>
+        <div class="concept-card">
+          <h4>PromQL</h4>
+          <p>Prometheus Query Language. Powers Grafana dashboards and alerts. <code>rate(http_requests_total[5m])</code> = per-second request rate. <code>histogram_quantile(0.99, rate(...))</code> = p99 latency.</p>
+        </div>
+        <div class="concept-card">
+          <h4>Service Discovery</h4>
+          <p>In Kubernetes: Prometheus auto-discovers pods/services via annotations. Add <code>prometheus.io/scrape: "true"</code> and <code>prometheus.io/port: "8080"</code> to your pod spec. No manual config per service.</p>
+        </div>
+      </div>
+      <br/>
+      <p><strong>Instrument your Go service:</strong></p>
+      <pre><code>import (
+    "github.com/prometheus/client_golang/prometheus"
+    "github.com/prometheus/client_golang/prometheus/promauto"
+    "github.com/prometheus/client_golang/prometheus/promhttp"
+)
+
+var (
+    // Counter — requests processed
+    requestsTotal = promauto.NewCounterVec(
+        prometheus.CounterOpts{
+            Name: "http_requests_total",
+            Help: "Total HTTP requests",
+        },
+        []string{"method", "path", "status"},
+    )
+
+    // Histogram — request duration with buckets
+    requestDuration = promauto.NewHistogramVec(
+        prometheus.HistogramOpts{
+            Name:    "http_request_duration_seconds",
+            Help:    "HTTP request duration",
+            Buckets: []float64{.005, .01, .025, .05, .1, .25, .5, 1, 2.5},
+        },
+        []string{"method", "path"},
+    )
+
+    // Gauge — current Kafka consumer lag
+    kafkaLag = promauto.NewGaugeVec(
+        prometheus.GaugeOpts{
+            Name: "kafka_consumer_lag",
+            Help: "Current Kafka consumer lag by topic/partition",
+        },
+        []string{"topic", "partition"},
+    )
+)
+
+// Middleware to instrument all HTTP handlers
+func metricsMiddleware(next http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        start := time.Now()
+        rw := &responseWriter{ResponseWriter: w, code: http.StatusOK}
+        next.ServeHTTP(rw, r)
+        dur := time.Since(start).Seconds()
+
+        status := strconv.Itoa(rw.code)
+        requestsTotal.WithLabelValues(r.Method, r.URL.Path, status).Inc()
+        requestDuration.WithLabelValues(r.Method, r.URL.Path).Observe(dur)
+    })
+}
+
+// Expose /metrics endpoint
+mux.Handle("/metrics", promhttp.Handler())</code></pre>
+    </div>
+
+    <div class="section">
+      <h3>Grafana — Dashboards</h3>
+      <p>Grafana visualises data from Prometheus (and Datadog, Loki, CloudWatch, etc). Key things to know:</p>
+      <br/>
+      <table class="cmd-table">
+        <thead><tr><th>Concept</th><th>What it is</th></tr></thead>
+        <tbody>
+          <tr><td>Data sources</td><td>Connect Grafana to Prometheus, Loki, Datadog, CloudWatch. One dashboard can query multiple sources.</td></tr>
+          <tr><td>Dashboard as code</td><td>Export dashboards as JSON, store in Git. Use Grafonnet (Jsonnet) or Terraform grafana provider to manage dashboards as code.</td></tr>
+          <tr><td>Variables</td><td>Dropdown filters (environment, service, cluster) that parameterise all panels. One dashboard for all services.</td></tr>
+          <tr><td>Alerting</td><td>Grafana 9+ has unified alerting — define alert rules on any panel, route to PagerDuty/Slack/email.</td></tr>
+          <tr><td>Key panels for microservices</td><td>Request rate, error rate, latency p50/p95/p99 (the RED method). CPU/memory. Kafka lag. DB connection pool utilisation.</td></tr>
+        </tbody>
+      </table>
+      <br/>
+      <p><strong>Essential PromQL queries for your services:</strong></p>
+      <pre><code># Request rate (per second, 5-min window)
+rate(http_requests_total{service="auth"}[5m])
+
+# Error rate percentage
+rate(http_requests_total{status=~"5.."}[5m])
+  / rate(http_requests_total[5m]) * 100
+
+# p99 latency
+histogram_quantile(0.99,
+  rate(http_request_duration_seconds_bucket{service="auth"}[5m])
+)
+
+# Kafka consumer lag sum across all partitions
+sum by (topic) (kafka_consumer_lag{group="my-service"})
+
+# CPU usage by pod
+rate(container_cpu_usage_seconds_total{namespace="production"}[5m]) * 100
+
+# Memory usage
+container_memory_working_set_bytes{namespace="production"} / 1024 / 1024</code></pre>
+    </div>
+
+    <div class="section">
+      <h3>Datadog — Enterprise Observability</h3>
+      <p>Datadog is what you use at Yahoo. It's a unified platform: metrics, logs, traces, APM, synthetics, dashboards, alerting.</p>
+      <br/>
+      <div class="concept-grid">
+        <div class="concept-card">
+          <h4>DogStatsD</h4>
+          <p>Metrics agent — your app sends metrics via UDP to the local Datadog agent, which batches and forwards to Datadog. Library: <code>github.com/DataDog/datadog-go/v5/statsd</code>.</p>
+        </div>
+        <div class="concept-card">
+          <h4>APM / Distributed Tracing</h4>
+          <p>Auto-instrument with <code>dd-trace-go</code>. Get traces across Go services with zero manual instrumentation. Correlates traces → logs → metrics in one click.</p>
+        </div>
+        <div class="concept-card">
+          <h4>Log Management</h4>
+          <p>Ship structured JSON logs → Datadog auto-parses fields. Use <code>dd.trace_id</code> and <code>dd.span_id</code> fields to link logs to traces. Log attributes become filterable facets.</td></p>
+        </div>
+        <div class="concept-card">
+          <h4>Monitors & Alerts</h4>
+          <p>Set thresholds on any metric, log query, or APM trace. Alert on: error rate &gt; 1%, p99 latency &gt; 500ms, Kafka lag &gt; 10K, pod OOMKill rate. Route to PagerDuty for critical, Slack for warn.</p>
+        </div>
+      </div>
+      <br/>
+      <pre><code>// Instrument a Go service with Datadog
+import (
+    "gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
+    "gopkg.in/DataDog/dd-trace-go.v1/contrib/net/http"
+    ddstatsd "github.com/DataDog/datadog-go/v5/statsd"
+)
+
+func main() {
+    // Start tracer
+    tracer.Start(
+        tracer.WithServiceName("my-service"),
+        tracer.WithEnv("production"),
+        tracer.WithServiceVersion("v2.1.3"),
+    )
+    defer tracer.Stop()
+
+    // Metrics client
+    statsd, _ := ddstatsd.New("localhost:8125")
+    defer statsd.Close()
+
+    // Auto-instrumented HTTP router
+    mux := httptrace.NewServeMux()
+    mux.HandleFunc("/api/orders", func(w http.ResponseWriter, r *http.Request) {
+        // Custom metric
+        statsd.Incr("orders.processed", []string{"env:production"}, 1)
+        statsd.Timing("orders.latency", time.Since(start), nil, 1)
+    })
+}</code></pre>
+    </div>
+
+    <div class="section">
+      <h3>Structured Logging — The Right Way</h3>
+      <pre><code>// Use slog (Go 1.21+ standard library) — structured by default
+import "log/slog"
+
+// Set up JSON handler for production
+logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+    Level: slog.LevelInfo,
+}))
+slog.SetDefault(logger)
+
+// Good: structured fields, not string formatting
+slog.Info("order processed",
+    "order_id", order.ID,
+    "user_id", order.UserID,
+    "amount", order.Amount,
+    "duration_ms", time.Since(start).Milliseconds(),
+)
+
+// Bad: unstructured — can't query on order_id in Datadog
+log.Printf("order processed: id=%s user=%s amount=%.2f", order.ID, order.UserID, order.Amount)
+
+// Always include trace context for correlation
+slog.InfoContext(ctx, "downstream call failed",
+    "service", "payments",
+    "error", err,
+    "trace_id", trace.SpanFromContext(ctx).SpanContext().TraceID().String(),
+)
+
+// Output (JSON, Datadog auto-parses this):
+// {"time":"2025-04-15T10:23:01Z","level":"INFO","msg":"order processed",
+//  "order_id":"ord_123","user_id":"usr_456","amount":99.99,"duration_ms":12}</code></pre>
+    </div>
+
+    <div class="section">
+      <h3>SLOs, SLIs & Error Budgets</h3>
+      <table class="cmd-table">
+        <thead><tr><th>Term</th><th>Definition</th><th>Example</th></tr></thead>
+        <tbody>
+          <tr><td>SLI</td><td>Service Level Indicator — the metric you measure</td><td>% of requests returning 2xx in &lt;200ms</td></tr>
+          <tr><td>SLO</td><td>Service Level Objective — the target you commit to</td><td>99.9% of requests succeed within 200ms, measured monthly</td></tr>
+          <tr><td>SLA</td><td>Service Level Agreement — contractual commitment with penalty</td><td>External customers get 99.9% uptime or credits</td></tr>
+          <tr><td>Error Budget</td><td>How much failure you're allowed: 100% - SLO</td><td>99.9% SLO = 0.1% budget = ~43 minutes/month downtime allowed</td></tr>
+          <tr><td>Burn rate</td><td>How fast you're consuming the error budget</td><td>Burn rate 10x = consuming monthly budget in 3 days → page immediately</td></tr>
+        </tbody>
+      </table>
+      <div class="tip-box"><strong>Practical SLO alerting:</strong> Alert when your error budget burn rate is unsustainably high — not just when you breach the SLO (too late by then). Burn rate alerts are the Google SRE recommendation. Datadog has built-in SLO tracking.</div>
+    </div>
+
+    <div class="section">
+      <h3>Resources</h3>
+      <div class="resource-row"><span class="resource-type rt-free">FREE</span><a href="https://sre.google/books/" target="_blank">Google SRE Book (free online)</a> — Chapters on monitoring, alerting, SLOs. The industry reference.</div>
+      <div class="resource-row"><span class="resource-type rt-docs">DOCS</span><a href="https://prometheus.io/docs/practices/naming/" target="_blank">Prometheus Naming Best Practices</a> — How to name metrics, choose labels, avoid cardinality explosions.</div>
+      <div class="resource-row"><span class="resource-type rt-video">VIDEO</span><a href="https://www.youtube.com/watch?v=h4Sl21AKiDg" target="_blank">Prometheus & Grafana Tutorial — TechWorld with Nana</a> — 1h hands-on walkthrough with Kubernetes.</div>
+      <div class="resource-row"><span class="resource-type rt-free">FREE</span><a href="https://www.datadoghq.com/blog/engineering/alerting-on-what-matters/" target="_blank">Alerting on What Matters — Datadog Blog</a> — How to write alerts that fire on symptoms not causes.</div>
+      <div class="resource-row"><span class="resource-type rt-practice">PRACTICE</span><a href="https://play.grafana.org/" target="_blank">Grafana Play</a> — Live Grafana instance with real dashboards. Explore without installing anything.</div>
+    </div>
+
+    <div class="section">
+      <h3>Check Your Understanding</h3>
+      <div class="quiz-q"><p><strong>Q1.</strong> Your p99 latency alert fires but average latency looks fine. What could cause this and how do you investigate?</p>
+        <details><summary>Show answer</summary><p>p99 high + average normal = a small percentage of requests are very slow. Causes: (1) A specific slow downstream dependency (DB slow query, external API timeout). (2) A specific code path only some requests hit. (3) GC pauses. (4) Hot partition in Kafka (one consumer much slower). Investigation: use distributed tracing to find the slow spans in the slow requests. Filter Datadog APM by p99 latency to see which traces are outliers.</p></details>
+      </div>
+      <div class="quiz-q"><p><strong>Q2.</strong> What's wrong with adding <code>user_id</code> as a Prometheus label?</p>
+        <details><summary>Show answer</summary><p>Cardinality explosion. Prometheus stores a separate time series for each unique label combination. With 1M users, adding user_id creates 1M+ time series per metric — this will OOM your Prometheus and make queries unusably slow. Labels should have low cardinality (typically &lt;100 unique values): service, env, method, status code, region. Use Datadog logs or distributed traces (which can handle high cardinality) when you need to query by user_id.</p></details>
+      </div>
+    </div>
+  </div>
+
+  <footer style="max-width:820px; margin: 2rem auto 0; padding: 1.5rem; border-top: 1px solid var(--border); text-align:center; color: var(--muted); font-size:0.82rem;">
+    <a href="../index.html" style="color: var(--accent2);">← Back to Dashboard</a>
+  </footer>
+  <script src="../js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Golang Deep Dive — Upskill</title>
+  <link rel="stylesheet" href="../css/style.css" />
+  <style>
+    .mark-done-bar { position: sticky; top: 0; background: var(--bg); border-bottom: 1px solid var(--border); padding: 0.75rem 1.5rem; display: flex; align-items: center; justify-content: space-between; z-index: 10; }
+    .mark-done-bar a { color: var(--accent2); text-decoration: none; font-size: 0.85rem; }
+    #mark-done-btn { background: var(--accent); color: #fff; border: none; padding: 0.5rem 1.25rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 600; }
+    #mark-done-btn:hover:not(:disabled) { background: #4f46e5; }
+    .concept-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 1rem; margin-top: 0.75rem; }
+    .concept-card { background: #12141e; border: 1px solid var(--border); border-radius: 8px; padding: 1rem; }
+    .concept-card h4 { font-size: 0.88rem; color: var(--accent2); margin-bottom: 0.4rem; }
+    .concept-card p { font-size: 0.82rem; color: var(--muted); line-height: 1.6; }
+    .cmd-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .cmd-table th { text-align: left; color: var(--muted); font-size: 0.75rem; text-transform: uppercase; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--border); }
+    .cmd-table td { padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.6; }
+    .cmd-table tr:last-child td { border-bottom: none; }
+    .project-step { display: flex; gap: 1rem; margin-bottom: 1.25rem; }
+    .step-num { background: var(--accent); color: #fff; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; flex-shrink: 0; margin-top: 0.1rem; }
+    .quiz-q { margin-bottom: 1rem; }
+    .quiz-q p { font-size: 0.9rem; margin-bottom: 0.5rem; }
+    .quiz-q details summary { cursor: pointer; color: var(--accent2); font-size: 0.85rem; }
+    .quiz-q details p { margin-top: 0.5rem; font-size: 0.85rem; color: var(--muted); line-height: 1.6; }
+    .resource-row { display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.6rem 0; border-bottom: 1px solid var(--border); }
+    .resource-row:last-child { border-bottom: none; }
+    .resource-type { font-size: 0.7rem; padding: 0.18rem 0.5rem; border-radius: 4px; font-weight: 600; flex-shrink: 0; margin-top: 0.1rem; }
+    .rt-free { background: #1a2e1a; color: var(--green); }
+    .rt-video { background: #1a1a2e; color: var(--accent2); }
+    .rt-docs { background: #1f1a2e; color: #a78bfa; }
+    .rt-practice { background: #2a1f00; color: var(--yellow); }
+    .tip-box { background: #12201a; border: 1px solid #22c55e33; border-radius: 8px; padding: 0.9rem 1rem; margin: 0.75rem 0; font-size: 0.85rem; color: var(--text); line-height: 1.6; }
+    .tip-box strong { color: var(--green); }
+    .warn-box { background: #1f1500; border: 1px solid #eab30833; border-radius: 8px; padding: 0.9rem 1rem; margin: 0.75rem 0; font-size: 0.85rem; color: var(--text); line-height: 1.6; }
+    .warn-box strong { color: var(--yellow); }
+  </style>
+</head>
+<body>
+  <div class="mark-done-bar">
+    <a href="../index.html">← Back to Dashboard</a>
+    <button id="mark-done-btn" data-key="topics/golang.html">Mark as Done</button>
+  </div>
+
+  <div class="topic-page">
+    <div class="breadcrumb"><a href="../index.html">Dashboard</a> / Languages / Golang Deep Dive</div>
+    <h1 class="topic-title">Golang Deep Dive</h1>
+    <p class="topic-meta">Level: Intermediate → Advanced &nbsp;·&nbsp; Focus: concurrency, performance, production patterns you use at Yahoo</p>
+
+    <div class="section">
+      <h3>Why Go — The Design Philosophy</h3>
+      <div class="concept-grid">
+        <div class="concept-card">
+          <h4>Compiled & statically typed</h4>
+          <p>Compiles to a single native binary. No runtime, no JVM, no interpreter. Cross-compile with <code>GOOS=linux GOARCH=amd64 go build</code>. Binary includes everything — trivial to containerise.</p>
+        </div>
+        <div class="concept-card">
+          <h4>Goroutines, not threads</h4>
+          <p>Goroutines are multiplexed onto OS threads by the Go scheduler (M:N threading). Start cost ~2KB stack vs ~8MB for an OS thread. Can run millions concurrently. This is why Go handles high concurrency cheaply.</p>
+        </div>
+        <div class="concept-card">
+          <h4>CSP concurrency model</h4>
+          <p>"Don't communicate by sharing memory; share memory by communicating." Channels are first-class — pass data between goroutines safely without locks. Locks still exist but are the escape hatch.</p>
+        </div>
+        <div class="concept-card">
+          <h4>Explicit error handling</h4>
+          <p>No exceptions. Functions return <code>(value, error)</code>. Forces you to handle every error at the call site. Verbose but predictable — you always know what can fail.</p>
+        </div>
+        <div class="concept-card">
+          <h4>Interfaces — implicit</h4>
+          <p>A type satisfies an interface if it has the required methods — no <code>implements</code> keyword needed. Enables loose coupling and easy testing via mock injection without heavy frameworks.</p>
+        </div>
+        <div class="concept-card">
+          <h4>GC but fast</h4>
+          <p>Go has a concurrent, tri-color mark-and-sweep GC. Pauses are typically &lt;1ms. For latency-sensitive paths, understand escape analysis: keep allocations on the stack (not heap) to reduce GC pressure.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Goroutines & Channels — The Core Model</h3>
+      <pre><code>// Basic goroutine
+go func() {
+    fmt.Println("runs concurrently")
+}()
+
+// Buffered vs unbuffered channels
+ch := make(chan int)      // unbuffered: send blocks until receive
+ch := make(chan int, 100) // buffered: send blocks only when full
+
+// Fan-out / Fan-in pattern — common in microservices
+func fanOut(jobs <-chan Job, workers int) []<-chan Result {
+    results := make([]<-chan Result, workers)
+    for i := range workers {
+        results[i] = worker(jobs)
+    }
+    return results
+}
+
+func merge(channels ...<-chan Result) <-chan Result {
+    out := make(chan Result)
+    var wg sync.WaitGroup
+    for _, ch := range channels {
+        wg.Add(1)
+        go func(c <-chan Result) {
+            defer wg.Done()
+            for r := range c { out <- r }
+        }(ch)
+    }
+    go func() { wg.Wait(); close(out) }()
+    return out
+}
+
+// Context for cancellation — use in every long-running operation
+func processKafkaMessage(ctx context.Context, msg Message) error {
+    select {
+    case <-ctx.Done():
+        return ctx.Err() // cancelled or timed out
+    default:
+    }
+
+    // Do work with deadline awareness
+    ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+    defer cancel()
+
+    return callDownstreamService(ctx, msg)
+}
+
+// WaitGroup — wait for N goroutines
+var wg sync.WaitGroup
+for _, item := range items {
+    wg.Add(1)
+    go func(i Item) {
+        defer wg.Done()
+        process(i)
+    }(item) // capture loop var
+}
+wg.Wait()
+
+// errgroup — WaitGroup + first error propagation
+g, ctx := errgroup.WithContext(context.Background())
+for _, url := range urls {
+    url := url // capture
+    g.Go(func() error {
+        return fetch(ctx, url)
+    })
+}
+if err := g.Wait(); err != nil {
+    log.Fatal(err)
+}</code></pre>
+    </div>
+
+    <div class="section">
+      <h3>Interfaces & Dependency Injection</h3>
+      <pre><code>// Define interface for what you need, not what you have
+type MessageStore interface {
+    Save(ctx context.Context, msg Message) error
+    Get(ctx context.Context, id string) (Message, error)
+    Delete(ctx context.Context, id string) error
+}
+
+// Production implementation
+type PostgresStore struct {
+    db *pgxpool.Pool
+}
+func (s *PostgresStore) Save(ctx context.Context, msg Message) error { /* ... */ }
+
+// Test mock — no frameworks needed
+type mockStore struct {
+    messages map[string]Message
+}
+func (m *mockStore) Save(_ context.Context, msg Message) error {
+    m.messages[msg.ID] = msg
+    return nil
+}
+
+// Service depends on interface, not concrete type
+type MessageService struct {
+    store  MessageStore   // inject interface
+    cache  Cache
+    logger *slog.Logger
+}
+
+func NewMessageService(store MessageStore, cache Cache, log *slog.Logger) *MessageService {
+    return &MessageService{store: store, cache: cache, logger: log}
+}
+
+// In tests: inject mock. In prod: inject real impl.
+svc := NewMessageService(&mockStore{messages: make(map[string]Message)}, nil, slog.Default())</code></pre>
+    </div>
+
+    <div class="section">
+      <h3>Production Error Handling Patterns</h3>
+      <pre><code>// Sentinel errors — for known conditions
+var (
+    ErrNotFound     = errors.New("not found")
+    ErrUnauthorized = errors.New("unauthorized")
+)
+
+// Custom error types — carry context
+type ValidationError struct {
+    Field   string
+    Message string
+}
+func (e *ValidationError) Error() string {
+    return fmt.Sprintf("validation failed on %s: %s", e.Field, e.Message)
+}
+
+// Wrapping errors — preserve stack
+if err := db.QueryRow(ctx, q, id).Scan(&msg); err != nil {
+    if errors.Is(err, pgx.ErrNoRows) {
+        return Message{}, fmt.Errorf("message %s: %w", id, ErrNotFound)
+    }
+    return Message{}, fmt.Errorf("querying message %s: %w", id, err)
+}
+
+// Unwrapping at the call site
+msg, err := store.Get(ctx, id)
+if errors.Is(err, ErrNotFound) {
+    http.Error(w, "not found", http.StatusNotFound)
+    return
+}
+var ve *ValidationError
+if errors.As(err, &ve) {
+    http.Error(w, ve.Message, http.StatusBadRequest)
+    return
+}</code></pre>
+    </div>
+
+    <div class="section">
+      <h3>HTTP Server Patterns — Production Ready</h3>
+      <pre><code>// Minimal but production-grade HTTP server
+func main() {
+    mux := http.NewServeMux()
+
+    // Register handlers
+    mux.HandleFunc("GET /health", healthHandler)
+    mux.HandleFunc("POST /api/v1/messages", createMessageHandler)
+    mux.HandleFunc("GET /api/v1/messages/{id}", getMessageHandler)
+
+    // Wrap with middleware chain
+    handler := middleware.Chain(
+        mux,
+        middleware.RequestID,
+        middleware.Logger(slog.Default()),
+        middleware.Recover,
+        middleware.Timeout(30*time.Second),
+    )
+
+    srv := &http.Server{
+        Addr:         ":8080",
+        Handler:      handler,
+        ReadTimeout:  10 * time.Second,
+        WriteTimeout: 30 * time.Second,
+        IdleTimeout:  120 * time.Second,
+    }
+
+    // Graceful shutdown
+    ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+    defer stop()
+
+    go func() {
+        if err := srv.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
+            slog.Error("server error", "err", err)
+            os.Exit(1)
+        }
+    }()
+
+    <-ctx.Done()
+    slog.Info("shutting down")
+    shutCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+    defer cancel()
+    srv.Shutdown(shutCtx)
+}
+
+// Middleware pattern
+func Logger(log *slog.Logger) func(http.Handler) http.Handler {
+    return func(next http.Handler) http.Handler {
+        return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+            start := time.Now()
+            rw := &responseWriter{ResponseWriter: w, code: http.StatusOK}
+            next.ServeHTTP(rw, r)
+            log.Info("request",
+                "method", r.Method,
+                "path", r.URL.Path,
+                "status", rw.code,
+                "duration", time.Since(start),
+                "request_id", r.Header.Get("X-Request-ID"),
+            )
+        })
+    }
+}</code></pre>
+    </div>
+
+    <div class="section">
+      <h3>Performance — What to Actually Measure</h3>
+      <table class="cmd-table">
+        <thead><tr><th>Technique</th><th>When to use</th></tr></thead>
+        <tbody>
+          <tr><td><code>go test -bench=. -benchmem</code></td><td>Benchmark hot paths. Look at allocs/op — each allocation is GC pressure.</td></tr>
+          <tr><td><code>go tool pprof</code></td><td>CPU profile: find where time is spent. Heap profile: find what's allocating. Add <code>net/http/pprof</code> to your server for live profiling.</td></tr>
+          <tr><td>Sync.Pool</td><td>Reuse allocations for frequently created/destroyed objects (buffers, structs). Reduces GC pressure in hot paths.</td></tr>
+          <tr><td>Escape analysis</td><td><code>go build -gcflags='-m'</code> shows what escapes to heap. Keep hot objects on stack — pass by value for small structs.</td></tr>
+          <tr><td>Pre-allocate slices</td><td><code>make([]T, 0, expectedLen)</code> — avoids repeated re-allocations as the slice grows.</td></tr>
+          <tr><td>strings.Builder</td><td>For string concatenation in loops — much cheaper than <code>+</code> which allocates each time.</td></tr>
+          <tr><td>goroutine pool</td><td>For high-volume workloads, bound concurrency with a semaphore: <code>sem := make(chan struct{}, maxWorkers)</code></td></tr>
+        </tbody>
+      </table>
+      <br/>
+      <pre><code>// Add pprof to your service — access at /debug/pprof/
+import _ "net/http/pprof"
+
+// Then profile live:
+// go tool pprof http://localhost:6060/debug/pprof/profile?seconds=30
+// go tool pprof http://localhost:6060/debug/pprof/heap
+
+// Semaphore for bounded concurrency — common pattern in your Kafka consumers
+sem := make(chan struct{}, 100) // max 100 concurrent
+for msg := range messages {
+    sem <- struct{}{}    // acquire
+    go func(m Message) {
+        defer func() { <-sem }() // release
+        process(m)
+    }(msg)
+}</code></pre>
+    </div>
+
+    <div class="section">
+      <h3>Testing Patterns</h3>
+      <pre><code">// Table-driven tests — Go standard
+func TestValidateMessage(t *testing.T) {
+    tests := []struct {
+        name    string
+        input   Message
+        wantErr bool
+    }{
+        {"valid message", Message{ID: "1", Body: "hello"}, false},
+        {"empty body",    Message{ID: "1", Body: ""},      true},
+        {"no ID",         Message{ID: "", Body: "hello"},  true},
+    }
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            err := ValidateMessage(tt.input)
+            if (err != nil) != tt.wantErr {
+                t.Errorf("got err=%v, wantErr=%v", err, tt.wantErr)
+            }
+        })
+    }
+}
+
+// httptest — test HTTP handlers without a real server
+func TestCreateMessage(t *testing.T) {
+    store := &mockStore{messages: make(map[string]Message)}
+    svc   := NewMessageService(store, nil, slog.Default())
+    h     := NewHandler(svc)
+
+    body := `{"id":"1","body":"hello"}`
+    req  := httptest.NewRequest("POST", "/api/v1/messages", strings.NewReader(body))
+    req.Header.Set("Content-Type", "application/json")
+    rec  := httptest.NewRecorder()
+
+    h.ServeHTTP(rec, req)
+
+    if rec.Code != http.StatusCreated {
+        t.Fatalf("want 201, got %d: %s", rec.Code, rec.Body)
+    }
+}
+
+// testcontainers — real Postgres in tests, no mocks
+func TestPostgresStore(t *testing.T) {
+    ctx := context.Background()
+    pg, err := testcontainers.RunContainer(ctx,
+        testcontainers.WithImage("postgres:15-alpine"),
+        testcontainers.WithEnv(map[string]string{
+            "POSTGRES_DB": "test", "POSTGRES_PASSWORD": "test",
+        }),
+    )
+    // ... connect and run real queries against real Postgres
+}</code></pre>
+    </div>
+
+    <div class="section">
+      <h3>Resources</h3>
+      <div class="resource-row"><span class="resource-type rt-docs">DOCS</span><a href="https://go.dev/doc/effective_go" target="_blank">Effective Go — Official</a> — The canonical style guide. Read once, re-read yearly.</div>
+      <div class="resource-row"><span class="resource-type rt-free">FREE</span><a href="https://gobyexample.com/" target="_blank">Go by Example</a> — Concise, runnable examples for every language feature.</div>
+      <div class="resource-row"><span class="resource-type rt-free">FREE</span><a href="https://www.practical-go-lessons.com/" target="_blank">Practical Go Lessons</a> — Deep, free book covering real-world patterns.</div>
+      <div class="resource-row"><span class="resource-type rt-video">VIDEO</span><a href="https://www.youtube.com/watch?v=oV9rvDllKEg" target="_blank">Concurrency is not Parallelism — Rob Pike (YouTube)</a> — 30min. Essential mental model.</div>
+      <div class="resource-row"><span class="resource-type rt-docs">BOOK</span><a href="https://www.oreilly.com/library/view/concurrency-in-go/9781491941294/" target="_blank">Concurrency in Go — Katherine Cox-Buday</a> — The deepest treatment of Go concurrency. Worth every page.</div>
+      <div class="resource-row"><span class="resource-type rt-practice">PRACTICE</span><a href="https://exercism.org/tracks/go" target="_blank">Exercism Go Track</a> — 140+ exercises with mentor feedback.</div>
+    </div>
+
+    <div class="section">
+      <h3>Check Your Understanding</h3>
+      <div class="quiz-q"><p><strong>Q1.</strong> What's the difference between a goroutine leak and a goroutine panic? How do you detect each?</p>
+        <details><summary>Show answer</summary><p>A <strong>goroutine leak</strong> is a goroutine that starts but never exits — it holds resources indefinitely. Common cause: sending to a channel with no receiver, or blocking on a channel that never closes. Detect with <code>runtime.NumGoroutine()</code> in a pprof goroutine profile — count grows over time. A <strong>goroutine panic</strong> is an unrecovered panic in a goroutine — it crashes the entire program. Always add <code>defer func() { if r := recover(); r != nil { log.Error(...) } }()</code> at the top of goroutines you don't control.</p></details>
+      </div>
+      <div class="quiz-q"><p><strong>Q2.</strong> When would you use <code>sync.Mutex</code> vs a channel?</p>
+        <details><summary>Show answer</summary><p>Use <strong>channels</strong> when transferring ownership of data between goroutines — the goroutine that sends gives up the data. Use <strong>Mutex</strong> when multiple goroutines need concurrent access to shared state (a cache, a counter, a map). Rule of thumb: if you're doing "worker receives tasks and produces results" → channel. If you're doing "multiple goroutines read/write the same cache" → Mutex + RWMutex for read-heavy cases.</p></details>
+      </div>
+      <div class="quiz-q"><p><strong>Q3.</strong> Your service handles 300K Kafka messages/day but memory keeps growing. Where do you look first?</p>
+        <details><summary>Show answer</summary><p>1. <code>pprof heap profile</code> — find what's allocating on the heap. 2. Check for goroutine leaks — goroutines that started on message receipt but never exited. 3. Check slice/map growth — pre-allocate or cap them. 4. Look for closures capturing large variables. 5. Check if you're holding references to message payloads longer than needed. 6. Look for missing <code>close()</code> on channels or DB connections being opened without defer close.</p></details>
+      </div>
+    </div>
+  </div>
+
+  <footer style="max-width:820px; margin: 2rem auto 0; padding: 1.5rem; border-top: 1px solid var(--border); text-align:center; color: var(--muted); font-size:0.82rem;">
+    <a href="../index.html" style="color: var(--accent2);">← Back to Dashboard</a>
+  </footer>
+  <script src="../js/main.js"></script>
+</body>
+</html>

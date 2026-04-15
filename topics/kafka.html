@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Apache Kafka — Upskill</title>
+  <link rel="stylesheet" href="../css/style.css" />
+  <style>
+    .mark-done-bar { position: sticky; top: 0; background: var(--bg); border-bottom: 1px solid var(--border); padding: 0.75rem 1.5rem; display: flex; align-items: center; justify-content: space-between; z-index: 10; }
+    .mark-done-bar a { color: var(--accent2); text-decoration: none; font-size: 0.85rem; }
+    #mark-done-btn { background: var(--accent); color: #fff; border: none; padding: 0.5rem 1.25rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 600; }
+    #mark-done-btn:hover:not(:disabled) { background: #4f46e5; }
+    .concept-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 1rem; margin-top: 0.75rem; }
+    .concept-card { background: #12141e; border: 1px solid var(--border); border-radius: 8px; padding: 1rem; }
+    .concept-card h4 { font-size: 0.88rem; color: var(--accent2); margin-bottom: 0.4rem; }
+    .concept-card p { font-size: 0.82rem; color: var(--muted); line-height: 1.6; }
+    .cmd-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .cmd-table th { text-align: left; color: var(--muted); font-size: 0.75rem; text-transform: uppercase; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--border); }
+    .cmd-table td { padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.6; }
+    .cmd-table tr:last-child td { border-bottom: none; }
+    .project-step { display: flex; gap: 1rem; margin-bottom: 1.25rem; }
+    .step-num { background: var(--accent); color: #fff; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; flex-shrink: 0; margin-top: 0.1rem; }
+    .quiz-q { margin-bottom: 1rem; }
+    .quiz-q p { font-size: 0.9rem; margin-bottom: 0.5rem; }
+    .quiz-q details summary { cursor: pointer; color: var(--accent2); font-size: 0.85rem; }
+    .quiz-q details p { margin-top: 0.5rem; font-size: 0.85rem; color: var(--muted); line-height: 1.6; }
+    .resource-row { display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.6rem 0; border-bottom: 1px solid var(--border); }
+    .resource-row:last-child { border-bottom: none; }
+    .resource-type { font-size: 0.7rem; padding: 0.18rem 0.5rem; border-radius: 4px; font-weight: 600; flex-shrink: 0; margin-top: 0.1rem; }
+    .rt-free { background: #1a2e1a; color: var(--green); }
+    .rt-video { background: #1a1a2e; color: var(--accent2); }
+    .rt-docs { background: #1f1a2e; color: #a78bfa; }
+    .rt-practice { background: #2a1f00; color: var(--yellow); }
+    .tip-box { background: #12201a; border: 1px solid #22c55e33; border-radius: 8px; padding: 0.9rem 1rem; margin: 0.75rem 0; font-size: 0.85rem; color: var(--text); line-height: 1.6; }
+    .tip-box strong { color: var(--green); }
+    .warn-box { background: #1f1500; border: 1px solid #eab30833; border-radius: 8px; padding: 0.9rem 1rem; margin: 0.75rem 0; font-size: 0.85rem; color: var(--text); line-height: 1.6; }
+    .warn-box strong { color: var(--yellow); }
+    .arch-box { background: #0d1117; border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; font-size: 0.82rem; line-height: 2; font-family: monospace; }
+  </style>
+</head>
+<body>
+  <div class="mark-done-bar">
+    <a href="../index.html">← Back to Dashboard</a>
+    <button id="mark-done-btn" data-key="topics/kafka.html">Mark as Done</button>
+  </div>
+
+  <div class="topic-page">
+    <div class="breadcrumb"><a href="../index.html">Dashboard</a> / Messaging & Events / Apache Kafka</div>
+    <h1 class="topic-title">Apache Kafka</h1>
+    <p class="topic-meta">Level: Intermediate → Advanced &nbsp;·&nbsp; You process 300K+ events/day — understand every moving part</p>
+
+    <div class="section">
+      <h3>How Kafka Works — The Architecture</h3>
+      <div class="arch-box">
+        Producers → [Topic: orders] → Consumers (Consumer Group A)<br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↓<br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Partition 0  [msg1][msg2][msg3]... → Consumer 1<br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Partition 1  [msg4][msg5][msg6]... → Consumer 2<br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Partition 2  [msg7][msg8][msg9]... → Consumer 3<br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↓<br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Broker 1 (leader p0, replica p1)<br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Broker 2 (leader p1, replica p2)<br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Broker 3 (leader p2, replica p0)
+      </div>
+      <br/>
+      <div class="concept-grid">
+        <div class="concept-card">
+          <h4>Topic & Partitions</h4>
+          <p>A topic is split into partitions. Each partition is an ordered, immutable log. Messages are appended only — never updated. Each message has an offset (sequential ID within a partition).</p>
+        </div>
+        <div class="concept-card">
+          <h4>Brokers & Replication</h4>
+          <p>A cluster of brokers stores partitions. Each partition has one leader and N-1 replicas. Producers/consumers always talk to the leader. Replicas stay in sync → ISR (In-Sync Replicas). If leader dies, a new one is elected from ISR.</p>
+        </div>
+        <div class="concept-card">
+          <h4>Consumer Groups</h4>
+          <p>Each consumer group independently reads the topic. Within a group, each partition is assigned to exactly one consumer. Scaling consumers = more parallelism, but max consumers = number of partitions.</p>
+        </div>
+        <div class="concept-card">
+          <h4>Offsets</h4>
+          <p>Each consumer tracks its position (offset) per partition. Committed to <code>__consumer_offsets</code> topic. On restart, consumer resumes from last committed offset. This is how at-least-once delivery works.</p>
+        </div>
+        <div class="concept-card">
+          <h4>Retention</h4>
+          <p>Messages are kept for a configured time (e.g. 7 days) or size. Unlike a queue, Kafka doesn't delete on consume. Multiple consumer groups can read the same data independently — even replay from offset 0.</p>
+        </div>
+        <div class="concept-card">
+          <h4>ZooKeeper → KRaft</h4>
+          <p>Old Kafka used ZooKeeper for metadata. Kafka 3.x+ uses KRaft (Kafka Raft) — metadata stored in Kafka itself. Simpler, fewer moving parts. New deployments should use KRaft mode.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Producer Internals — What Actually Happens When You Send</h3>
+      <div class="concept-grid">
+        <div class="concept-card">
+          <h4>Partitioning</h4>
+          <p>If a key is provided: <code>partition = hash(key) % numPartitions</code>. Same key → always same partition → ordering guaranteed for that key. No key → round-robin (default) or sticky.</p>
+        </div>
+        <div class="concept-card">
+          <h4>Batching</h4>
+          <p>Producer batches messages before sending. <code>batch.size</code> = max bytes per batch. <code>linger.ms</code> = wait time to fill batch. Bigger batches = higher throughput but more latency. Tune both for your workload.</p>
+        </div>
+        <div class="concept-card">
+          <h4>acks setting</h4>
+          <p><code>acks=0</code>: fire and forget (fastest, data loss possible). <code>acks=1</code>: leader ack only (leader crash = data loss). <code>acks=all</code>: all ISR must ack (safest, use in production with min.insync.replicas=2).</p>
+        </div>
+        <div class="concept-card">
+          <h4>Idempotent producer</h4>
+          <p><code>enable.idempotence=true</code> — Kafka assigns a producer ID + sequence number. Broker deduplicates retries. Enables exactly-once semantics within a producer session.</p>
+        </div>
+        <div class="concept-card">
+          <h4>Compression</h4>
+          <p><code>compression.type=lz4</code> or <code>snappy</code>. Reduces network + disk I/O. LZ4 = best speed. Zstd = best ratio. Decompress on consumer side. Almost always worth enabling.</p>
+        </div>
+        <div class="concept-card">
+          <h4>Transactions</h4>
+          <p>Atomic produce across multiple topics. Use for exactly-once: read-process-write where write goes to Kafka. Set <code>transactional.id</code>. Kafka guarantees the entire transaction commits or rolls back.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Consumer Patterns in Go</h3>
+      <pre><code>// Production Kafka consumer in Go using confluent-kafka-go
+package main
+
+import (
+    "context"
+    "encoding/json"
+    "log/slog"
+    "os/signal"
+    "syscall"
+    "time"
+
+    "github.com/confluentinc/confluent-kafka-go/v2/kafka"
+)
+
+type OrderEvent struct {
+    ID     string  `json:"id"`
+    Amount float64 `json:"amount"`
+    UserID string  `json:"user_id"`
+}
+
+type Consumer struct {
+    consumer  *kafka.Consumer
+    processor EventProcessor
+    log       *slog.Logger
+}
+
+func NewConsumer(brokers, groupID string, topics []string, p EventProcessor) (*Consumer, error) {
+    c, err := kafka.NewConsumer(&kafka.ConfigMap{
+        "bootstrap.servers":        brokers,
+        "group.id":                 groupID,
+        "auto.offset.reset":        "earliest",
+        "enable.auto.commit":       false,  // manual commit — control exactly when
+        "max.poll.interval.ms":     300000,
+        "session.timeout.ms":       30000,
+        "fetch.min.bytes":          1024,   // batch at least 1KB before delivering
+        "fetch.wait.max.ms":        500,
+    })
+    if err != nil {
+        return nil, err
+    }
+    c.SubscribeTopics(topics, nil)
+    return &Consumer{consumer: c, processor: p}, nil
+}
+
+func (c *Consumer) Run(ctx context.Context) error {
+    for {
+        select {
+        case <-ctx.Done():
+            return ctx.Err()
+        default:
+        }
+
+        msg, err := c.consumer.ReadMessage(100 * time.Millisecond)
+        if err != nil {
+            if err.(kafka.Error).IsTimeout() {
+                continue  // no messages, try again
+            }
+            c.log.Error("kafka read error", "err", err)
+            continue
+        }
+
+        // Process message
+        if err := c.processMessage(ctx, msg); err != nil {
+            c.log.Error("processing failed",
+                "topic", *msg.TopicPartition.Topic,
+                "offset", msg.TopicPartition.Offset,
+                "err", err,
+            )
+            // Decision: send to DLQ or retry?
+            c.sendToDLQ(ctx, msg, err)
+        }
+
+        // Commit AFTER successful processing (at-least-once)
+        if _, err := c.consumer.CommitMessage(msg); err != nil {
+            c.log.Error("commit failed", "err", err)
+        }
+    }
+}
+
+func (c *Consumer) processMessage(ctx context.Context, msg *kafka.Message) error {
+    var event OrderEvent
+    if err := json.Unmarshal(msg.Value, &event); err != nil {
+        return fmt.Errorf("unmarshal: %w", err)  // don't retry on bad JSON
+    }
+    return c.processor.Process(ctx, event)
+}
+
+// Dead Letter Queue pattern
+func (c *Consumer) sendToDLQ(ctx context.Context, msg *kafka.Message, reason error) {
+    // Produce to orders-dlq topic with original message + error metadata
+}</code></pre>
+    </div>
+
+    <div class="section">
+      <h3>Critical Config Settings</h3>
+      <table class="cmd-table">
+        <thead><tr><th>Setting</th><th>What it controls</th><th>Production recommendation</th></tr></thead>
+        <tbody>
+          <tr><td><code>replication.factor</code></td><td>How many brokers hold a copy of each partition</td><td>3 in production — tolerates 1 broker failure</td></tr>
+          <tr><td><code>min.insync.replicas</code></td><td>Min replicas that must ack a write</td><td>2 — combined with acks=all prevents data loss</td></tr>
+          <tr><td><code>retention.ms</code></td><td>How long messages are kept</td><td>7 days default — tune per topic data volume</td></tr>
+          <tr><td><code>max.message.bytes</code></td><td>Max message size</td><td>Default 1MB — increase if you send large payloads, but prefer smaller messages</td></tr>
+          <tr><td><code>num.partitions</code></td><td>Parallelism ceiling</td><td>Start with 3-6 per topic — you can increase but never decrease</td></tr>
+          <tr><td><code>consumer: max.poll.records</code></td><td>Records returned per poll</td><td>Lower (e.g. 100) if processing is slow to avoid rebalance timeouts</td></tr>
+          <tr><td><code>consumer: session.timeout.ms</code></td><td>How long before broker considers consumer dead</td><td>30s — lower means faster rebalance detection</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section">
+      <h3>Common Problems & How to Debug</h3>
+      <table class="cmd-table">
+        <thead><tr><th>Problem</th><th>Cause</th><th>Fix</th></tr></thead>
+        <tbody>
+          <tr><td>Consumer lag growing</td><td>Consumers are slower than producers</td><td>Add more partitions + consumers. Profile the processing code. Use async processing with bounded goroutine pool.</td></tr>
+          <tr><td>Frequent rebalances</td><td>Consumer processing takes longer than session.timeout.ms</td><td>Increase max.poll.interval.ms. Reduce max.poll.records. Move slow work to async goroutines, commit after.</td></tr>
+          <tr><td>Duplicate messages</td><td>Consumer crash after processing but before commit</td><td>This is at-least-once by design. Make processing idempotent — use message ID as dedup key in DB/Redis.</td></tr>
+          <tr><td>Messages out of order</td><td>Multiple partitions or no partition key</td><td>Kafka only guarantees order within a partition. Use a consistent key (e.g. user_id) if order matters.</td></tr>
+          <tr><td>Producer data loss</td><td>acks=1 and leader crash during write</td><td>Set acks=all + min.insync.replicas=2. Enable idempotent producer.</td></tr>
+        </tbody>
+      </table>
+      <br/>
+      <pre><code># kafka-cli essential commands
+# List topics
+kafka-topics.sh --bootstrap-server localhost:9092 --list
+
+# Describe topic (partitions, replication, ISR)
+kafka-topics.sh --bootstrap-server localhost:9092 --describe --topic orders
+
+# Consumer group lag
+kafka-consumer-groups.sh --bootstrap-server localhost:9092 \
+  --describe --group my-service-group
+
+# Reset offsets (careful!)
+kafka-consumer-groups.sh --bootstrap-server localhost:9092 \
+  --group my-service-group --topic orders \
+  --reset-offsets --to-earliest --execute
+
+# Consume messages from a topic (debug)
+kafka-console-consumer.sh --bootstrap-server localhost:9092 \
+  --topic orders --from-beginning --max-messages 10</code></pre>
+    </div>
+
+    <div class="section">
+      <h3>Hands-On Project: Build a Go Kafka Pipeline</h3>
+      <div class="project-step">
+        <div class="step-num">1</div>
+        <div><strong>Spin up Kafka with Docker Compose</strong>
+          <pre><code>cat > docker-compose.yml << 'EOF'
+version: '3.9'
+services:
+  kafka:
+    image: confluentinc/cp-kafka:7.6.0
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+    ports:
+      - "9092:9092"
+EOF
+docker compose up -d</code></pre>
+        </div>
+      </div>
+      <div class="project-step">
+        <div class="step-num">2</div>
+        <div><strong>Produce and consume in Go</strong>
+          <pre><code>go mod init kafka-lab
+go get github.com/confluentinc/confluent-kafka-go/v2/kafka
+
+# Write producer and consumer using the patterns above
+# Run producer in one terminal, consumer in another
+# Kill consumer, produce more messages, restart — observe offset resumption
+# Add a slow processor (time.Sleep) — watch consumer lag build</code></pre>
+        </div>
+      </div>
+      <div class="project-step">
+        <div class="step-num">3</div>
+        <div><strong>Observe consumer lag in real time</strong>
+          <pre><code># While consumer is running:
+kafka-consumer-groups.sh --bootstrap-server localhost:9092 \
+  --describe --group my-group
+# TOPIC   PARTITION  CURRENT-OFFSET  LOG-END-OFFSET  LAG
+# orders  0          145             200             55  ← this is your lag</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Resources</h3>
+      <div class="resource-row"><span class="resource-type rt-docs">DOCS</span><a href="https://kafka.apache.org/documentation/" target="_blank">Apache Kafka Official Docs</a> — Design section is essential. Read "The Log" post by Jay Kreps.</div>
+      <div class="resource-row"><span class="resource-type rt-free">FREE</span><a href="https://www.gentlydownthe.stream/" target="_blank">Gently Down the Stream</a> — Beautiful visual guide to Kafka concepts. Start here.</div>
+      <div class="resource-row"><span class="resource-type rt-free">FREE</span><a href="https://medium.com/hackernoon/the-log-what-every-software-engineer-should-know-about-real-time-datas-unifying-abstraction-9430a2b2" target="_blank">The Log — Jay Kreps (Confluent CEO)</a> — The foundational essay on log-based architectures.</div>
+      <div class="resource-row"><span class="resource-type rt-video">VIDEO</span><a href="https://www.youtube.com/watch?v=Ch5VhJzaoaI" target="_blank">Apache Kafka in 1 Hour — TechWorld with Nana</a> — Best fast visual intro.</div>
+      <div class="resource-row"><span class="resource-type rt-practice">PRACTICE</span><a href="https://developer.confluent.io/courses/" target="_blank">Confluent Developer Courses (Free)</a> — Hands-on labs with real Kafka clusters.</div>
+    </div>
+
+    <div class="section">
+      <h3>Check Your Understanding</h3>
+      <div class="quiz-q"><p><strong>Q1.</strong> Your orders topic has 6 partitions and your consumer group has 8 consumers. What happens?</p>
+        <details><summary>Show answer</summary><p>Only 6 consumers will be active — each assigned one partition. The other 2 will be idle. Max parallelism = number of partitions. To use all 8 consumers you'd need at least 8 partitions. This is why you should plan partition count ahead of time — you can increase but never decrease without downtime.</p></details>
+      </div>
+      <div class="quiz-q"><p><strong>Q2.</strong> Your service must process payment events exactly once. How do you achieve this with Kafka?</p>
+        <details><summary>Show answer</summary><p>Kafka's exactly-once requires: (1) Idempotent producer (<code>enable.idempotence=true</code>) — deduplicates retries. (2) Transactional API — atomic read-process-write. (3) Or: at-least-once delivery + idempotent consumer — store the message offset/ID in your DB in the same transaction as the processing effect. The last approach is most common and practical.</p></details>
+      </div>
+      <div class="quiz-q"><p><strong>Q3.</strong> When would you use a partition key vs no key?</p>
+        <details><summary>Show answer</summary><p>Use a <strong>key</strong> when: ordering matters for a specific entity (all events for user_id=123 must be processed in order). The key ensures all messages for that entity land in the same partition. Use <strong>no key</strong> (round-robin) when: order doesn't matter and you want even load distribution across partitions. Warning: if your keyspace is small (e.g. country codes), you'll get hot partitions — some consumers work much harder than others.</p></details>
+      </div>
+    </div>
+  </div>
+
+  <footer style="max-width:820px; margin: 2rem auto 0; padding: 1.5rem; border-top: 1px solid var(--border); text-align:center; color: var(--muted); font-size:0.82rem;">
+    <a href="../index.html" style="color: var(--accent2);">← Back to Dashboard</a>
+  </footer>
+  <script src="../js/main.js"></script>
+</body>
+</html>

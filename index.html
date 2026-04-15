@@ -25,6 +25,44 @@
     .news-refresh { background: none; border: 1px solid var(--border); border-radius: 6px; padding: 0.25rem 0.65rem; font-size: 0.72rem; color: var(--muted); cursor: pointer; margin-left: auto; transition: all 0.15s; }
     .news-refresh:hover { border-color: var(--accent2); color: var(--accent2); }
     .topic-list li.done a { text-decoration: line-through; opacity: 0.5; }
+
+    /* ── Jobs Section ── */
+    .jobs-section { max-width: 900px; margin: 0 auto 2rem; padding: 0 1.5rem; }
+    .jobs-section > h2 { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 0.85rem; display: flex; align-items: center; gap: 0.5rem; }
+    .jobs-refresh { background: none; border: 1px solid var(--border); border-radius: 6px; padding: 0.25rem 0.65rem; font-size: 0.72rem; color: var(--muted); cursor: pointer; margin-left: auto; transition: all 0.15s; }
+    .jobs-refresh:hover { border-color: var(--accent2); color: var(--accent2); }
+    .jobs-type-tabs { display: flex; gap: 0; margin-bottom: 1rem; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 3px; width: fit-content; }
+    .jobs-type-tab { background: none; border: none; border-radius: 6px; padding: 0.38rem 1.1rem; font-size: 0.82rem; cursor: pointer; color: var(--muted); transition: all 0.18s; font-weight: 500; }
+    .jobs-type-tab.active { background: var(--accent); color: #fff; box-shadow: 0 1px 6px rgba(99,102,241,0.4); }
+    .jobs-type-tab:hover:not(.active) { color: var(--text); }
+    .jobs-filter-tabs { display: flex; gap: 0.4rem; margin-bottom: 0.8rem; flex-wrap: wrap; }
+    .jobs-filter { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 0.22rem 0.75rem; font-size: 0.74rem; cursor: pointer; color: var(--muted); transition: all 0.15s; }
+    .jobs-filter.active { background: var(--accent2); border-color: var(--accent2); color: #0f1117; font-weight: 600; }
+    .jobs-filter:hover:not(.active) { border-color: var(--accent2); color: var(--text); }
+    .top-companies { display: flex; gap: 0.4rem; flex-wrap: wrap; align-items: center; margin-bottom: 0.8rem; }
+    .tc-label { font-size: 0.72rem; color: var(--muted); white-space: nowrap; }
+    .company-chip { font-size: 0.73rem; color: var(--text); text-decoration: none; padding: 0.2rem 0.65rem; border: 1px solid var(--border); border-radius: 20px; background: var(--surface); transition: all 0.15s; }
+    .company-chip:hover { border-color: var(--accent); color: var(--accent); }
+    .jobs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(265px, 1fr)); gap: 0.75rem; }
+    .job-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.9rem 1rem; transition: border-color 0.2s; display: flex; flex-direction: column; gap: 0.45rem; }
+    .job-card:hover { border-color: var(--accent); }
+    .job-top { display: flex; gap: 0.65rem; align-items: flex-start; }
+    .job-logo { width: 30px; height: 30px; border-radius: 5px; object-fit: contain; background: #fff; flex-shrink: 0; padding: 2px; }
+    .job-title { color: var(--text); text-decoration: none; font-size: 0.84rem; font-weight: 500; line-height: 1.4; display: block; }
+    .job-title:hover { color: var(--accent2); }
+    .job-company { font-size: 0.74rem; color: var(--muted); margin-top: 0.1rem; }
+    .job-meta { display: flex; gap: 0.5rem; flex-wrap: wrap; font-size: 0.7rem; color: var(--muted); }
+    .job-location { color: var(--muted); }
+    .job-salary { color: var(--green); font-weight: 600; }
+    .job-date { opacity: 0.7; }
+    .job-tags { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+    .job-tag { background: #1f2937; border-radius: 3px; padding: 0.1rem 0.42rem; font-size: 0.67rem; color: var(--muted); }
+    .job-desc { font-size: 0.75rem; color: var(--muted); line-height: 1.5; margin: 0; }
+    .jobs-loading, .jobs-empty { color: var(--muted); font-size: 0.85rem; padding: 1.2rem 0; text-align: center; grid-column: 1/-1; }
+    .modeling-platforms { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; margin-bottom: 0.85rem; padding: 0.6rem 0.9rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
+    .platform-label { font-size: 0.72rem; color: var(--muted); white-space: nowrap; }
+    .platform-link { font-size: 0.75rem; color: var(--accent2); text-decoration: none; padding: 0.15rem 0.55rem; border: 1px solid var(--border); border-radius: 4px; transition: all 0.15s; }
+    .platform-link:hover { border-color: var(--accent2); background: rgba(34,211,238,0.08); }
   </style>
 </head>
 <body>
@@ -50,6 +88,64 @@
       </div>
       <div class="news-grid" id="news-grid">
         <div class="news-loading">Loading latest stories...</div>
+      </div>
+    </section>
+
+    <!-- ── JOBS ── -->
+    <section class="jobs-section">
+      <h2>
+        <span class="live-dot"></span>
+        Live Jobs
+        <button class="jobs-refresh" id="jobs-refresh-btn">Refresh</button>
+      </h2>
+
+      <!-- Type switcher -->
+      <div class="jobs-type-tabs">
+        <button class="jobs-type-tab active" data-type="tech">💼 Tech Jobs</button>
+        <button class="jobs-type-tab" data-type="modeling">✨ Modeling &amp; Creative</button>
+      </div>
+
+      <!-- Tech Jobs Panel -->
+      <div id="jobs-panel-tech" class="jobs-panel">
+        <div class="top-companies">
+          <span class="tc-label">Top companies:</span>
+          <a class="company-chip" href="https://www.cloudflare.com/careers/jobs/" target="_blank" rel="noopener">Cloudflare</a>
+          <a class="company-chip" href="https://careers.datadoghq.com/" target="_blank" rel="noopener">Datadog</a>
+          <a class="company-chip" href="https://stripe.com/jobs" target="_blank" rel="noopener">Stripe</a>
+          <a class="company-chip" href="https://www.hashicorp.com/jobs" target="_blank" rel="noopener">HashiCorp</a>
+          <a class="company-chip" href="https://www.confluent.io/careers/" target="_blank" rel="noopener">Confluent</a>
+          <a class="company-chip" href="https://grafana.com/about/careers/" target="_blank" rel="noopener">Grafana Labs</a>
+          <a class="company-chip" href="https://www.cockroachlabs.com/careers/" target="_blank" rel="noopener">Cockroach Labs</a>
+          <a class="company-chip" href="https://temporal.io/careers" target="_blank" rel="noopener">Temporal</a>
+          <a class="company-chip" href="https://www.pagerduty.com/careers/" target="_blank" rel="noopener">PagerDuty</a>
+        </div>
+        <div class="jobs-filter-tabs">
+          <button class="jobs-filter active" data-param="category=devops-sysadmin">All Stack</button>
+          <button class="jobs-filter" data-param="search=golang">Go / Backend</button>
+          <button class="jobs-filter" data-param="search=platform+engineer">Platform / DevOps</button>
+          <button class="jobs-filter" data-param="search=site+reliability">SRE / Cloud</button>
+          <button class="jobs-filter" data-param="search=kafka">Kafka / Data</button>
+        </div>
+        <div class="jobs-grid" id="tech-jobs-grid">
+          <div class="jobs-loading">Loading remote jobs…</div>
+        </div>
+      </div>
+
+      <!-- Modeling & Creative Panel -->
+      <div id="jobs-panel-modeling" class="jobs-panel" style="display:none">
+        <div class="modeling-platforms">
+          <span class="platform-label">Find work on:</span>
+          <a class="platform-link" href="https://www.castingcallclub.com/casting-calls" target="_blank" rel="noopener">Casting Call Club</a>
+          <a class="platform-link" href="https://www.backstage.com/casting-calls/" target="_blank" rel="noopener">Backstage</a>
+          <a class="platform-link" href="https://www.castingnetworks.com/casting-notices" target="_blank" rel="noopener">Casting Networks</a>
+          <a class="platform-link" href="https://www.modelmayhem.com/jobs" target="_blank" rel="noopener">Model Mayhem</a>
+          <a class="platform-link" href="https://www.exploretalent.com/auditions" target="_blank" rel="noopener">Explore Talent</a>
+          <a class="platform-link" href="https://www.wilhelmina.com/new-faces" target="_blank" rel="noopener">Wilhelmina</a>
+          <a class="platform-link" href="https://www.imgmodels.com/new-faces" target="_blank" rel="noopener">IMG Models</a>
+        </div>
+        <div class="jobs-grid" id="modeling-jobs-grid">
+          <div class="jobs-loading">Loading casting calls…</div>
+        </div>
       </div>
     </section>
 
@@ -227,5 +323,6 @@
 
   <script src="js/main.js"></script>
   <script src="js/news.js"></script>
+  <script src="js/jobs.js"></script>
 </body>
 </html>

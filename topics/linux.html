@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Linux Basics — Upskill</title>
+  <link rel="stylesheet" href="../css/style.css" />
+  <style>
+    .mark-done-bar { position: sticky; top: 0; background: var(--bg); border-bottom: 1px solid var(--border); padding: 0.75rem 1.5rem; display: flex; align-items: center; justify-content: space-between; z-index: 10; }
+    .mark-done-bar a { color: var(--accent2); text-decoration: none; font-size: 0.85rem; }
+    #mark-done-btn { background: var(--accent); color: #fff; border: none; padding: 0.5rem 1.25rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 600; }
+    #mark-done-btn:hover:not(:disabled) { background: #4f46e5; }
+    .concept-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 1rem; margin-top: 0.75rem; }
+    .concept-card { background: #12141e; border: 1px solid var(--border); border-radius: 8px; padding: 1rem; }
+    .concept-card h4 { font-size: 0.88rem; color: var(--accent2); margin-bottom: 0.4rem; }
+    .concept-card p { font-size: 0.82rem; color: var(--muted); line-height: 1.6; }
+    .cmd-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .cmd-table th { text-align: left; color: var(--muted); font-size: 0.75rem; text-transform: uppercase; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--border); }
+    .cmd-table td { padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.5; }
+    .cmd-table tr:last-child td { border-bottom: none; }
+    .project-step { display: flex; gap: 1rem; margin-bottom: 1.25rem; }
+    .step-num { background: var(--accent); color: #fff; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; flex-shrink: 0; margin-top: 0.1rem; }
+    .quiz-q { margin-bottom: 1rem; }
+    .quiz-q p { font-size: 0.9rem; margin-bottom: 0.5rem; }
+    .quiz-q details summary { cursor: pointer; color: var(--accent2); font-size: 0.85rem; }
+    .quiz-q details p { margin-top: 0.5rem; font-size: 0.85rem; color: var(--muted); line-height: 1.6; }
+    .resource-row { display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.6rem 0; border-bottom: 1px solid var(--border); }
+    .resource-row:last-child { border-bottom: none; }
+    .resource-type { font-size: 0.7rem; padding: 0.18rem 0.5rem; border-radius: 4px; font-weight: 600; flex-shrink: 0; margin-top: 0.1rem; }
+    .rt-free { background: #1a2e1a; color: var(--green); }
+    .rt-video { background: #1a1a2e; color: var(--accent2); }
+    .rt-docs { background: #1f1a2e; color: #a78bfa; }
+    .rt-practice { background: #2a1f00; color: var(--yellow); }
+    .tip-box { background: #12201a; border: 1px solid #22c55e33; border-radius: 8px; padding: 0.9rem 1rem; margin: 0.75rem 0; font-size: 0.85rem; color: var(--text); line-height: 1.6; }
+    .tip-box strong { color: var(--green); }
+    .warn-box { background: #1f1500; border: 1px solid #eab30833; border-radius: 8px; padding: 0.9rem 1rem; margin: 0.75rem 0; font-size: 0.85rem; color: var(--text); line-height: 1.6; }
+    .warn-box strong { color: var(--yellow); }
+    .perm-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-top: 0.75rem; }
+    .perm-cell { background: #12141e; border: 1px solid var(--border); border-radius: 6px; padding: 0.6rem 0.75rem; text-align: center; font-size: 0.82rem; }
+    .perm-cell .val { font-size: 1.2rem; font-weight: 700; color: var(--accent2); display: block; }
+  </style>
+</head>
+<body>
+
+  <div class="mark-done-bar">
+    <a href="../index.html">← Back to Dashboard</a>
+    <button id="mark-done-btn" data-key="topics/linux.html">Mark as Done</button>
+  </div>
+
+  <div class="topic-page">
+    <div class="breadcrumb">
+      <a href="../index.html">Dashboard</a> / Track 1: Core Foundations / Linux Basics
+    </div>
+
+    <h1 class="topic-title">Linux Basics</h1>
+    <p class="topic-meta">Level: Beginner → Intermediate &nbsp;·&nbsp; Estimated: 3–4 days &nbsp;·&nbsp; Every server you touch runs Linux</p>
+
+    <!-- KERNEL & ARCHITECTURE -->
+    <div class="section">
+      <h3>How Linux Works — The Architecture</h3>
+      <div class="concept-grid">
+        <div class="concept-card">
+          <h4>Kernel</h4>
+          <p>The core — manages CPU, memory, devices, system calls. User programs never touch hardware directly; they ask the kernel via syscalls (<code>read</code>, <code>write</code>, <code>fork</code>, <code>exec</code>, etc.).</p>
+        </div>
+        <div class="concept-card">
+          <h4>Shell</h4>
+          <p>A user-space program that reads commands and executes them. bash, zsh, sh are all shells. When you type a command, the shell <code>fork()</code>s a child process and <code>exec()</code>s the binary.</p>
+        </div>
+        <div class="concept-card">
+          <h4>Everything is a File</h4>
+          <p>Linux's core philosophy. Regular files, directories, devices (<code>/dev/sda</code>), sockets, pipes — all accessed via the same file I/O interface. <code>/proc</code> and <code>/sys</code> expose kernel state as files.</p>
+        </div>
+        <div class="concept-card">
+          <h4>Processes</h4>
+          <p>Every running program is a process with a PID. Each process has: a parent (PPID), file descriptors, memory space, environment variables, a working directory. Init (PID 1) is the ancestor of all processes.</p>
+        </div>
+        <div class="concept-card">
+          <h4>File Descriptors</h4>
+          <p>Numbers representing open files/connections. Every process starts with: 0 = stdin, 1 = stdout, 2 = stderr. When you redirect (<code>2>&1</code>), you're remapping FDs.</p>
+        </div>
+        <div class="concept-card">
+          <h4>systemd</h4>
+          <p>Modern init system (PID 1 on most distros). Manages services (<code>systemctl start/stop/enable</code>), logging (<code>journalctl</code>), targets (runlevels), and dependencies between services.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- FILESYSTEM -->
+    <div class="section">
+      <h3>Filesystem Layout — Where Everything Lives</h3>
+      <table class="cmd-table">
+        <thead><tr><th>Path</th><th>What lives there</th></tr></thead>
+        <tbody>
+          <tr><td><code>/</code></td><td>Root — everything hangs off here</td></tr>
+          <tr><td><code>/bin</code> / <code>/usr/bin</code></td><td>Essential user binaries (ls, cat, grep, curl)</td></tr>
+          <tr><td><code>/sbin</code> / <code>/usr/sbin</code></td><td>System binaries (for root: fdisk, iptables, sshd)</td></tr>
+          <tr><td><code>/etc</code></td><td>Configuration files for all services (nginx, ssh, cron, fstab)</td></tr>
+          <tr><td><code>/var</code></td><td>Variable data — logs (<code>/var/log</code>), spool, databases, caches</td></tr>
+          <tr><td><code>/tmp</code></td><td>Temporary files — cleared on reboot. World-writable.</td></tr>
+          <tr><td><code>/home</code></td><td>User home directories (<code>/home/pyatam</code>)</td></tr>
+          <tr><td><code>/root</code></td><td>Root user's home directory (separate from /home)</td></tr>
+          <tr><td><code>/proc</code></td><td>Virtual FS exposing kernel/process state. <code>/proc/1/status</code> = info on PID 1. <code>/proc/cpuinfo</code>, <code>/proc/meminfo</code>.</td></tr>
+          <tr><td><code>/sys</code></td><td>Virtual FS for device/driver configuration and kernel parameters</td></tr>
+          <tr><td><code>/dev</code></td><td>Device files. <code>/dev/sda</code> = first disk. <code>/dev/null</code> = discard sink. <code>/dev/random</code> = entropy source.</td></tr>
+          <tr><td><code>/opt</code></td><td>Optional/third-party software (e.g., installed apps not in package manager)</td></tr>
+          <tr><td><code>/usr/local</code></td><td>Locally compiled/installed software</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ESSENTIAL COMMANDS -->
+    <div class="section">
+      <h3>Essential Commands</h3>
+      <table class="cmd-table">
+        <thead><tr><th>Command</th><th>What it does</th></tr></thead>
+        <tbody>
+          <tr><td><code>ls -lah</code></td><td>List files with permissions, sizes (human-readable), hidden files</td></tr>
+          <tr><td><code>cd -</code></td><td>Go back to previous directory</td></tr>
+          <tr><td><code>pwd</code></td><td>Print current working directory</td></tr>
+          <tr><td><code>find / -name "*.conf" -type f 2>/dev/null</code></td><td>Find all .conf files, suppress permission errors</td></tr>
+          <tr><td><code>grep -r "ERROR" /var/log/ --include="*.log"</code></td><td>Recursively search logs for ERROR</td></tr>
+          <tr><td><code>grep -v "DEBUG" app.log</code></td><td>Show lines NOT matching DEBUG</td></tr>
+          <tr><td><code>tail -f /var/log/syslog</code></td><td>Follow a log file in real time</td></tr>
+          <tr><td><code>tail -n 100 app.log | grep ERROR</code></td><td>Last 100 lines, filter for errors</td></tr>
+          <tr><td><code>cat file | sort | uniq -c | sort -rn</code></td><td>Count occurrences of each unique line, most frequent first</td></tr>
+          <tr><td><code>awk '{print $1}' access.log | sort | uniq -c | sort -rn | head</code></td><td>Top IPs in an nginx access log</td></tr>
+          <tr><td><code>sed -i 's/old/new/g' file.conf</code></td><td>Replace all occurrences of "old" with "new" in-place</td></tr>
+          <tr><td><code>cut -d: -f1 /etc/passwd</code></td><td>Extract first field (username) from /etc/passwd</td></tr>
+          <tr><td><code>wc -l file</code></td><td>Count lines in file</td></tr>
+          <tr><td><code>df -h</code></td><td>Disk usage of all mounted filesystems (human-readable)</td></tr>
+          <tr><td><code>du -sh /var/log/*</code></td><td>Size of each item in /var/log</td></tr>
+          <tr><td><code>free -h</code></td><td>Memory usage (total, used, free, buffers/cache)</td></tr>
+          <tr><td><code>uptime</code></td><td>System uptime and load averages (1, 5, 15 min)</td></tr>
+          <tr><td><code>uname -a</code></td><td>Kernel version and architecture</td></tr>
+          <tr><td><code>which python3</code></td><td>Full path of a binary in your PATH</td></tr>
+          <tr><td><code>type curl</code></td><td>Shows if a command is a binary, shell function, or alias</td></tr>
+          <tr><td><code>history | grep docker</code></td><td>Search your command history</td></tr>
+          <tr><td><code>!!</code></td><td>Repeat last command</td></tr>
+          <tr><td><code>sudo !!</code></td><td>Re-run last command with sudo</td></tr>
+          <tr><td><code>Ctrl+R</code></td><td>Reverse-search command history interactively</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- PROCESSES -->
+    <div class="section">
+      <h3>Process Management</h3>
+      <table class="cmd-table">
+        <thead><tr><th>Command</th><th>What it does</th></tr></thead>
+        <tbody>
+          <tr><td><code>ps aux</code></td><td>List all running processes (user, PID, CPU%, MEM%, command)</td></tr>
+          <tr><td><code>ps aux | grep nginx</code></td><td>Find nginx processes</td></tr>
+          <tr><td><code>top</code> / <code>htop</code></td><td>Live process monitor. htop is interactive, colour-coded.</td></tr>
+          <tr><td><code>kill PID</code></td><td>Send SIGTERM (graceful stop) to process</td></tr>
+          <tr><td><code>kill -9 PID</code></td><td>Send SIGKILL (force kill — process cannot catch this). Use as last resort.</td></tr>
+          <tr><td><code>killall nginx</code></td><td>Kill all processes named nginx</td></tr>
+          <tr><td><code>pgrep -f "python app.py"</code></td><td>Find PID of process matching pattern</td></tr>
+          <tr><td><code>pkill -f "python app.py"</code></td><td>Kill process matching pattern</td></tr>
+          <tr><td><code>nohup ./script.sh &</code></td><td>Run script in background, immune to hangup signal</td></tr>
+          <tr><td><code>jobs</code> / <code>fg</code> / <code>bg</code></td><td>List background jobs / bring to foreground / send to background</td></tr>
+          <tr><td><code>Ctrl+Z</code></td><td>Suspend current foreground process (sends SIGSTOP)</td></tr>
+          <tr><td><code>lsof -p PID</code></td><td>List all files/connections open by a process</td></tr>
+          <tr><td><code>strace -p PID</code></td><td>Trace system calls made by a process — powerful for debugging</td></tr>
+        </tbody>
+      </table>
+      <br/>
+      <div class="tip-box"><strong>Load Average explained:</strong> <code>uptime</code> shows three numbers (e.g. <code>0.52 0.78 1.23</code>) — load over last 1, 5, 15 minutes. Load = number of processes waiting for CPU. On a 4-core machine, load of 4.0 = 100% busy. Load &gt; number of cores = system is overloaded.</div>
+    </div>
+
+    <!-- PERMISSIONS -->
+    <div class="section">
+      <h3>File Permissions — The Part Everyone Gets Wrong</h3>
+      <p>Every file has permissions for three classes: <strong>owner (u)</strong>, <strong>group (g)</strong>, <strong>others (o)</strong>.</p>
+      <pre><code>-rwxr-xr--  1  pyatam  staff  4096  Apr 9  script.sh
+ ↑↑↑↑↑↑↑↑↑
+ │└──┬──┘└──┬──┘└──┬──┘
+ │  owner  group  others
+ │  rwx    r-x    r--
+ type (- = file, d = dir, l = symlink)</code></pre>
+      <br/>
+      <p><strong>Permission bits:</strong></p>
+      <div class="perm-grid">
+        <div class="perm-cell"><span class="val">r = 4</span>read</div>
+        <div class="perm-cell"><span class="val">w = 2</span>write</div>
+        <div class="perm-cell"><span class="val">x = 1</span>execute</div>
+      </div>
+      <br/>
+      <p><strong>Octal notation:</strong> <code>rwxr-xr--</code> = <code>754</code> (7=rwx, 5=r-x, 4=r--)</p>
+      <br/>
+      <table class="cmd-table">
+        <thead><tr><th>Command</th><th>Effect</th></tr></thead>
+        <tbody>
+          <tr><td><code>chmod 755 script.sh</code></td><td>rwxr-xr-x — owner full, group+others read+execute</td></tr>
+          <tr><td><code>chmod 644 config.conf</code></td><td>rw-r--r-- — owner read+write, others read-only</td></tr>
+          <tr><td><code>chmod +x script.sh</code></td><td>Add execute bit for all classes</td></tr>
+          <tr><td><code>chmod -R 755 /var/www</code></td><td>Recursively set permissions</td></tr>
+          <tr><td><code>chown pyatam:staff file.txt</code></td><td>Change owner to pyatam, group to staff</td></tr>
+          <tr><td><code>chown -R www-data /var/www</code></td><td>Recursively change owner to www-data</td></tr>
+          <tr><td><code>umask 022</code></td><td>Default permission mask — new files get 644, dirs get 755</td></tr>
+        </tbody>
+      </table>
+      <br/>
+      <div class="concept-grid">
+        <div class="concept-card">
+          <h4>SUID / SGID / Sticky</h4>
+          <p><strong>SUID (4xxx):</strong> Run file as owner, not caller. <code>passwd</code> has SUID — runs as root even when called by normal user.<br/><strong>Sticky bit (1xxx):</strong> On directories — only the owner can delete their own files. Set on <code>/tmp</code>.</p>
+        </div>
+        <div class="concept-card">
+          <h4>sudo</h4>
+          <p>Run commands as another user (usually root). Config in <code>/etc/sudoers</code>. Never log in as root directly — use sudo for auditability. <code>sudo -i</code> = root shell. <code>sudo -u www-data cmd</code> = run as www-data.</p>
+        </div>
+        <div class="concept-card">
+          <h4>ACLs</h4>
+          <p>Extended permissions beyond owner/group/others. <code>setfacl -m u:nginx:rx /var/app</code> grants nginx user access without changing group. <code>getfacl file</code> to view.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- NETWORKING -->
+    <div class="section">
+      <h3>Networking Commands</h3>
+      <table class="cmd-table">
+        <thead><tr><th>Command</th><th>What it does</th></tr></thead>
+        <tbody>
+          <tr><td><code>ip addr show</code></td><td>Show all network interfaces and their IPs</td></tr>
+          <tr><td><code>ip route show</code></td><td>Show routing table</td></tr>
+          <tr><td><code>ss -tlnp</code></td><td>Show listening ports + which processes own them</td></tr>
+          <tr><td><code>curl -s http://169.254.169.254/latest/meta-data/</code></td><td>AWS instance metadata (from within EC2)</td></tr>
+          <tr><td><code>iptables -L -n --line-numbers</code></td><td>Show firewall rules with line numbers</td></tr>
+          <tr><td><code>nc -zv host 443</code></td><td>Test TCP connectivity to host:port</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- USERS & GROUPS -->
+    <div class="section">
+      <h3>Users, Groups &amp; SSH</h3>
+      <table class="cmd-table">
+        <thead><tr><th>Command</th><th>What it does</th></tr></thead>
+        <tbody>
+          <tr><td><code>useradd -m -s /bin/bash alice</code></td><td>Create user alice with home dir and bash shell</td></tr>
+          <tr><td><code>passwd alice</code></td><td>Set alice's password</td></tr>
+          <tr><td><code>usermod -aG docker alice</code></td><td>Add alice to docker group (<code>-a</code> = append, not replace)</td></tr>
+          <tr><td><code>groups alice</code></td><td>Show alice's groups</td></tr>
+          <tr><td><code>id alice</code></td><td>UID, GID, all group memberships</td></tr>
+          <tr><td><code>who</code> / <code>w</code></td><td>Who is logged in. <code>w</code> shows what they're doing.</td></tr>
+          <tr><td><code>last</code></td><td>Login history from /var/log/wtmp</td></tr>
+          <tr><td><code>ssh-keygen -t ed25519 -C "comment"</code></td><td>Generate SSH key pair (ed25519 is modern, prefer over RSA)</td></tr>
+          <tr><td><code>ssh-copy-id user@server</code></td><td>Copy public key to server's authorized_keys</td></tr>
+          <tr><td><code>ssh -i key.pem -L 8080:localhost:80 user@server</code></td><td>SSH tunnel — forward local 8080 to server's port 80</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- SHELL SCRIPTING -->
+    <div class="section">
+      <h3>Shell Scripting — The Essentials</h3>
+      <pre><code>#!/bin/bash
+set -euo pipefail   # ALWAYS put this at the top
+# -e: exit on error   -u: error on unset var   -o pipefail: catch pipe failures
+
+# Variables
+NAME="world"
+echo "Hello, $NAME"
+
+# Command substitution
+DATE=$(date +%Y-%m-%d)
+FILES=$(ls /etc/*.conf | wc -l)
+
+# If / else
+if [[ -f "/etc/nginx/nginx.conf" ]]; then
+    echo "nginx config found"
+elif [[ -d "/etc/nginx" ]]; then
+    echo "nginx dir exists but no config"
+else
+    echo "nginx not installed"
+fi
+
+# Comparison operators
+# Strings: == != -z (empty) -n (not empty)
+# Numbers: -eq -ne -lt -gt -le -ge
+# Files: -f (file) -d (dir) -x (executable) -r (readable)
+
+# Loops
+for i in {1..5}; do
+    echo "Step $i"
+done
+
+for file in /var/log/*.log; do
+    echo "Processing: $file"
+    wc -l "$file"
+done
+
+# While loop
+COUNT=0
+while [[ $COUNT -lt 3 ]]; do
+    echo "Count: $COUNT"
+    ((COUNT++))
+done
+
+# Functions
+deploy() {
+    local SERVICE=$1    # local = scoped to function
+    local ENV=${2:-staging}   # default value
+    echo "Deploying $SERVICE to $ENV"
+    # ... actual deploy logic
+}
+deploy "auth-service" "production"
+
+# Error handling
+check_health() {
+    local URL=$1
+    local STATUS
+    STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$URL")
+    if [[ "$STATUS" != "200" ]]; then
+        echo "ERROR: $URL returned $STATUS" >&2
+        return 1
+    fi
+    echo "OK: $URL"
+}
+
+# Arrays
+SERVICES=("auth" "api" "worker" "scheduler")
+for svc in "${SERVICES[@]}"; do
+    echo "Checking $svc..."
+done
+echo "Total services: ${#SERVICES[@]}"
+
+# Read input from file or stdin
+while IFS= read -r line; do
+    echo "Processing: $line"
+done < "/path/to/file"
+
+# Trap for cleanup
+cleanup() {
+    echo "Cleaning up..."
+    rm -f /tmp/deploy.lock
+}
+trap cleanup EXIT   # runs on any exit, including errors</code></pre>
+    </div>
+
+    <!-- SYSTEMD -->
+    <div class="section">
+      <h3>systemd — Service Management</h3>
+      <table class="cmd-table">
+        <thead><tr><th>Command</th><th>What it does</th></tr></thead>
+        <tbody>
+          <tr><td><code>systemctl status nginx</code></td><td>Service status, last log lines, PID, memory</td></tr>
+          <tr><td><code>systemctl start / stop / restart nginx</code></td><td>Control the service</td></tr>
+          <tr><td><code>systemctl enable nginx</code></td><td>Auto-start on boot</td></tr>
+          <tr><td><code>systemctl disable nginx</code></td><td>Don't auto-start on boot</td></tr>
+          <tr><td><code>systemctl reload nginx</code></td><td>Reload config without restarting (if supported)</td></tr>
+          <tr><td><code>journalctl -u nginx -f</code></td><td>Follow logs for nginx service</td></tr>
+          <tr><td><code>journalctl -u nginx --since "1 hour ago"</code></td><td>Last hour of nginx logs</td></tr>
+          <tr><td><code>journalctl -p err -b</code></td><td>All errors since last boot</td></tr>
+          <tr><td><code>systemctl list-units --state=failed</code></td><td>Show all failed services</td></tr>
+        </tbody>
+      </table>
+      <br/>
+      <p><strong>Write your own service unit:</strong></p>
+      <pre><code># /etc/systemd/system/myapp.service
+[Unit]
+Description=My Application
+After=network.target postgresql.service
+Requires=postgresql.service
+
+[Service]
+Type=simple
+User=appuser
+WorkingDirectory=/opt/myapp
+ExecStart=/opt/myapp/bin/server --port 8080
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+Environment=NODE_ENV=production
+EnvironmentFile=/etc/myapp/env    # load env vars from file
+
+[Install]
+WantedBy=multi-user.target</code></pre>
+      <pre><code>sudo systemctl daemon-reload
+sudo systemctl enable --now myapp</code></pre>
+    </div>
+
+    <!-- CRON -->
+    <div class="section">
+      <h3>Cron — Scheduled Tasks</h3>
+      <pre><code># Edit crontab for current user
+crontab -e
+
+# Format: minute hour day-of-month month day-of-week command
+# *       *    *             *      *
+# 0-59  0-23  1-31         1-12   0-7 (0 and 7 = Sunday)
+
+0 2 * * *     /opt/scripts/backup.sh        # Daily at 2am
+*/5 * * * *   /opt/scripts/health-check.sh  # Every 5 minutes
+0 9 * * 1     /opt/scripts/weekly-report.sh # Monday 9am
+0 0 1 * *     /opt/scripts/monthly-clean.sh # 1st of month midnight
+@reboot       /opt/scripts/startup.sh       # On every reboot
+
+# Best practices
+# 1. Redirect output or you'll get email spam
+*/5 * * * * /script.sh >> /var/log/script.log 2>&1
+
+# 2. Use full paths (cron has minimal PATH)
+0 * * * * /usr/bin/python3 /opt/myapp/task.py
+
+# 3. Use flock to prevent overlapping runs
+*/5 * * * * flock -n /tmp/task.lock /opt/scripts/task.sh</code></pre>
+    </div>
+
+    <!-- PROJECT -->
+    <div class="section">
+      <h3>Hands-On Project: Linux Server Setup Script</h3>
+      <p style="margin-bottom:1rem; color: var(--muted);">Write a production-ready server bootstrap script.</p>
+
+      <div class="project-step">
+        <div class="step-num">1</div>
+        <div>
+          <strong>Create <code>bootstrap.sh</code> — full server setup</strong>
+          <pre><code>#!/bin/bash
+set -euo pipefail
+
+LOG_FILE="/var/log/bootstrap.log"
+exec > >(tee -a "$LOG_FILE") 2>&1
+
+echo "=== Bootstrap started: $(date) ==="
+
+# Check running as root
+if [[ $EUID -ne 0 ]]; then
+    echo "ERROR: Must run as root" >&2
+    exit 1
+fi
+
+# Update system
+apt-get update -qq
+apt-get upgrade -y -qq
+
+# Install essentials
+apt-get install -y -qq \
+    curl wget git vim htop \
+    build-essential \
+    ufw fail2ban \
+    jq unzip
+
+# Create deploy user
+if ! id deploy &>/dev/null; then
+    useradd -m -s /bin/bash deploy
+    usermod -aG sudo deploy
+    mkdir -p /home/deploy/.ssh
+    chmod 700 /home/deploy/.ssh
+    echo "Created deploy user"
+fi
+
+# Configure UFW firewall
+ufw --force reset
+ufw default deny incoming
+ufw default allow outgoing
+ufw allow 22/tcp comment "SSH"
+ufw allow 80/tcp comment "HTTP"
+ufw allow 443/tcp comment "HTTPS"
+ufw --force enable
+
+# Harden SSH
+cat >> /etc/ssh/sshd_config << 'EOF'
+PermitRootLogin no
+PasswordAuthentication no
+X11Forwarding no
+MaxAuthTries 3
+ClientAliveInterval 300
+ClientAliveCountMax 2
+EOF
+systemctl restart sshd
+
+# Configure fail2ban
+systemctl enable --now fail2ban
+
+echo "=== Bootstrap complete: $(date) ==="</code></pre>
+        </div>
+      </div>
+
+      <div class="project-step">
+        <div class="step-num">2</div>
+        <div>
+          <strong>Write a log analysis script</strong>
+          <pre><code>#!/bin/bash
+# analyze_logs.sh — parse nginx access logs
+set -euo pipefail
+
+LOG=${1:-/var/log/nginx/access.log}
+[[ -f "$LOG" ]] || { echo "Log not found: $LOG" >&2; exit 1; }
+
+echo "=== Top 10 IPs ==="
+awk '{print $1}' "$LOG" | sort | uniq -c | sort -rn | head -10
+
+echo ""
+echo "=== Status Code Distribution ==="
+awk '{print $9}' "$LOG" | sort | uniq -c | sort -rn
+
+echo ""
+echo "=== Top 10 URLs ==="
+awk '{print $7}' "$LOG" | sort | uniq -c | sort -rn | head -10
+
+echo ""
+echo "=== Requests in last hour ==="
+HOUR_AGO=$(date -d '1 hour ago' '+%d/%b/%Y:%H' 2>/dev/null || \
+           date -v-1H '+%d/%b/%Y:%H')  # macOS fallback
+grep "$HOUR_AGO" "$LOG" | wc -l</code></pre>
+        </div>
+      </div>
+
+      <div class="project-step">
+        <div class="step-num">3</div>
+        <div>
+          <strong>Monitor disk space with alerting</strong>
+          <pre><code>#!/bin/bash
+# disk_alert.sh — alert if any partition above threshold
+set -euo pipefail
+
+THRESHOLD=80
+ALERT_EMAIL="you@example.com"
+
+df -h | awk 'NR>1' | while read -r line; do
+    USAGE=$(echo "$line" | awk '{print $5}' | tr -d '%')
+    MOUNT=$(echo "$line" | awk '{print $6}')
+
+    if [[ "$USAGE" -gt "$THRESHOLD" ]]; then
+        MSG="ALERT: $MOUNT is ${USAGE}% full on $(hostname)"
+        echo "$MSG"
+        # Uncomment to send email:
+        # echo "$MSG" | mail -s "Disk Alert" "$ALERT_EMAIL"
+    fi
+done</code></pre>
+          <p style="font-size:0.82rem; color: var(--muted); margin-top:0.5rem;">Schedule with cron: <code>*/30 * * * * /opt/scripts/disk_alert.sh >> /var/log/disk_alert.log 2>&1</code></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- RESOURCES -->
+    <div class="section">
+      <h3>Resources</h3>
+      <div class="resource-row">
+        <span class="resource-type rt-free">FREE</span>
+        <a href="https://linuxcommand.org/tlcl.php" target="_blank">The Linux Command Line — William Shotts (free PDF)</a>
+        — The best beginner-to-intermediate book. Read chapters 1–10 first.
+      </div>
+      <div class="resource-row">
+        <span class="resource-type rt-practice">PRACTICE</span>
+        <a href="https://overthewire.org/wargames/bandit/" target="_blank">OverTheWire: Bandit</a>
+        — Learn Linux commands by solving CTF-style challenges over SSH. Addictive.
+      </div>
+      <div class="resource-row">
+        <span class="resource-type rt-video">VIDEO</span>
+        <a href="https://www.youtube.com/watch?v=ZtqBQ68cfJc" target="_blank">Linux for Hackers — NetworkChuck (YouTube)</a>
+        — Practical, fast-paced. Great for getting comfortable quickly.
+      </div>
+      <div class="resource-row">
+        <span class="resource-type rt-free">FREE</span>
+        <a href="https://explainshell.com/" target="_blank">ExplainShell.com</a>
+        — Paste any shell command, get each flag explained. Use constantly.
+      </div>
+      <div class="resource-row">
+        <span class="resource-type rt-docs">REFERENCE</span>
+        <a href="https://www.gnu.org/software/bash/manual/" target="_blank">GNU Bash Manual</a>
+        — Complete bash reference. Search when you need specific syntax.
+      </div>
+      <div class="resource-row">
+        <span class="resource-type rt-free">FREE</span>
+        <a href="https://github.com/dylanaraps/pure-bash-bible" target="_blank">Pure Bash Bible (GitHub)</a>
+        — Pure-bash implementations of common tasks. No external tools needed.
+      </div>
+    </div>
+
+    <!-- QUIZ -->
+    <div class="section">
+      <h3>Check Your Understanding</h3>
+      <div class="quiz-q">
+        <p><strong>Q1.</strong> What does <code>chmod 640 secrets.env</code> mean? Who can read it?</p>
+        <details><summary>Show answer</summary>
+          <p>6 = rw- (owner can read+write), 4 = r-- (group can read only), 0 = --- (others cannot access). Only the file owner and members of the file's group can read it. Nobody outside the group can read, write, or execute. Good for config files with credentials.</p>
+        </details>
+      </div>
+      <div class="quiz-q">
+        <p><strong>Q2.</strong> Your script works fine manually but fails in cron. What are the most likely causes?</p>
+        <details><summary>Show answer</summary>
+          <p>(1) <strong>PATH</strong> — cron has minimal PATH. Use full paths like <code>/usr/bin/python3</code>. (2) <strong>Working directory</strong> — cron starts in <code>/</code> by default, not your home dir. Use absolute paths. (3) <strong>Environment variables</strong> — cron doesn't load your shell profile. Set vars explicitly or source them. (4) <strong>No output capture</strong> — errors may be silently swallowed. Add <code>2>&1</code> and log to file.</p>
+        </details>
+      </div>
+      <div class="quiz-q">
+        <p><strong>Q3.</strong> What is the difference between <code>kill -15</code> and <code>kill -9</code>?</p>
+        <details><summary>Show answer</summary>
+          <p>SIGTERM (-15) is a polite request to terminate — the process can catch this signal and do cleanup (close connections, flush buffers, write PID file). Always try this first. SIGKILL (-9) is immediately terminated by the kernel — the process cannot catch, block, or ignore it. No cleanup happens. Use -9 only if -15 fails after a reasonable wait.</p>
+        </details>
+      </div>
+      <div class="quiz-q">
+        <p><strong>Q4.</strong> What does <code>2>&1</code> do and where would you use it?</p>
+        <details><summary>Show answer</summary>
+          <p>Redirects file descriptor 2 (stderr) to wherever fd 1 (stdout) currently points. So <code>command > output.log 2>&1</code> sends both stdout and stderr to output.log. Critical in cron jobs and scripts where you want to capture all output. Order matters: <code>2>&1 > file</code> is wrong (stderr goes to terminal, stdout to file); <code>> file 2>&1</code> is correct.</p>
+        </details>
+      </div>
+    </div>
+  </div>
+
+  <footer style="max-width:820px; margin: 2rem auto 0; padding: 1.5rem; border-top: 1px solid var(--border); text-align:center; color: var(--muted); font-size:0.82rem;">
+    <a href="../index.html" style="color: var(--accent2);">← Back to Dashboard</a>
+  </footer>
+  <script src="../js/main.js"></script>
+</body>
+</html>

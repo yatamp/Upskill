@@ -6,7 +6,6 @@
   <title>Upskill Dashboard</title>
   <link rel="stylesheet" href="css/style.css" />
   <style>
-    /* ── Tech News ── */
     .news-section { max-width: 900px; margin: 0 auto 2rem; padding: 0 1.5rem; }
     .news-section h2 { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 0.85rem; display: flex; align-items: center; gap: 0.5rem; }
     .news-section h2 span.live-dot { width: 7px; height: 7px; background: var(--green); border-radius: 50%; display: inline-block; animation: pulse 2s infinite; }
@@ -16,15 +15,16 @@
     .news-card:hover { border-color: var(--accent); }
     .news-card a { color: var(--text); text-decoration: none; font-size: 0.85rem; font-weight: 500; line-height: 1.45; display: block; margin-bottom: 0.4rem; }
     .news-card a:hover { color: var(--accent2); }
-    .news-meta { font-size: 0.72rem; color: var(--muted); display: flex; gap: 0.75rem; }
+    .news-meta { font-size: 0.72rem; color: var(--muted); display: flex; gap: 0.75rem; flex-wrap: wrap; }
     .news-source { background: #1f2937; border-radius: 4px; padding: 0.1rem 0.4rem; font-size: 0.68rem; }
     .news-loading { color: var(--muted); font-size: 0.85rem; padding: 1rem 0; text-align: center; }
-    .news-tabs { display: flex; gap: 0.5rem; margin-bottom: 0.85rem; flex-wrap: wrap; }
+    .news-tabs { display: flex; gap: 0.5rem; margin-bottom: 0.85rem; flex-wrap: wrap; align-items: center; }
     .news-tab { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 0.3rem 0.75rem; font-size: 0.78rem; cursor: pointer; color: var(--muted); transition: all 0.15s; }
     .news-tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
     .news-tab:hover:not(.active) { border-color: var(--accent); color: var(--text); }
     .news-refresh { background: none; border: 1px solid var(--border); border-radius: 6px; padding: 0.25rem 0.65rem; font-size: 0.72rem; color: var(--muted); cursor: pointer; margin-left: auto; transition: all 0.15s; }
     .news-refresh:hover { border-color: var(--accent2); color: var(--accent2); }
+    .topic-list li.done a { text-decoration: line-through; opacity: 0.5; }
   </style>
 </head>
 <body>
@@ -188,13 +188,13 @@
           <span class="track-icon">🤖</span>
           <div>
             <h2>8. AI &amp; The Tech World</h2>
-            <p>LLMs, building with Claude, MCP, Claude Code.</p>
+            <p>LLMs, building with Claude, MCP, agents, Claude Code.</p>
           </div>
           <span class="badge todo">Not started</span>
         </div>
         <ul class="topic-list">
-          <li><a href="topics/ai-claude.html">AI Basics, Claude API &amp; MCP</a> <span class="tag">Beginner→Adv</span></li>
-          <li><a href="topics/ai-in-devops.html">AI in DevOps &amp; Automation</a> <span class="tag">Intermediate</span></li>
+          <li><a href="topics/ai-claude.html">Claude API, MCP &amp; Claude Code</a> <span class="tag">Beginner→Adv</span></li>
+          <li><a href="topics/ai-agents.html">LLMs, Agents, RAG &amp; MCP Deep Dive</a> <span class="tag">Advanced</span></li>
           <li><a href="topics/ai-industry.html">Industry Trends &amp; Players</a> <span class="tag">Beginner</span></li>
         </ul>
       </div>

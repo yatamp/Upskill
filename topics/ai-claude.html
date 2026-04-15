@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI, Claude & MCP — Upskill</title>
+  <link rel="stylesheet" href="../css/style.css" />
+  <style>
+    .mark-done-bar { position: sticky; top: 0; background: var(--bg); border-bottom: 1px solid var(--border); padding: 0.75rem 1.5rem; display: flex; align-items: center; justify-content: space-between; z-index: 10; }
+    .mark-done-bar a { color: var(--accent2); text-decoration: none; font-size: 0.85rem; }
+    #mark-done-btn { background: var(--accent); color: #fff; border: none; padding: 0.5rem 1.25rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 600; }
+    #mark-done-btn:hover:not(:disabled) { background: #4f46e5; }
+    .concept-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 1rem; margin-top: 0.75rem; }
+    .concept-card { background: #12141e; border: 1px solid var(--border); border-radius: 8px; padding: 1rem; }
+    .concept-card h4 { font-size: 0.88rem; color: var(--accent2); margin-bottom: 0.4rem; }
+    .concept-card p { font-size: 0.82rem; color: var(--muted); }
+    .project-step { display: flex; gap: 1rem; margin-bottom: 1.25rem; }
+    .step-num { background: var(--accent); color: #fff; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; flex-shrink: 0; margin-top: 0.1rem; }
+    .quiz-q { margin-bottom: 1rem; }
+    .quiz-q p { font-size: 0.9rem; margin-bottom: 0.5rem; }
+    .quiz-q details summary { cursor: pointer; color: var(--accent2); font-size: 0.85rem; }
+    .quiz-q details p { margin-top: 0.5rem; font-size: 0.85rem; color: var(--muted); }
+    .resource-row { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 0; border-bottom: 1px solid var(--border); }
+    .resource-row:last-child { border-bottom: none; }
+    .resource-type { font-size: 0.7rem; padding: 0.18rem 0.5rem; border-radius: 4px; font-weight: 600; flex-shrink: 0; }
+    .rt-free { background: #1a2e1a; color: var(--green); }
+    .rt-video { background: #1a1a2e; color: var(--accent2); }
+    .rt-docs { background: #1f1a2e; color: #a78bfa; }
+    .rt-practice { background: #2a1f00; color: var(--yellow); }
+    .cmd-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .cmd-table th { text-align: left; color: var(--muted); font-size: 0.75rem; text-transform: uppercase; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--border); }
+    .cmd-table td { padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+    .cmd-table tr:last-child td { border-bottom: none; }
+    .tip-box { background: #12201a; border: 1px solid #22c55e33; border-radius: 8px; padding: 0.9rem 1rem; margin: 0.75rem 0; font-size: 0.85rem; }
+    .tip-box strong { color: var(--green); }
+    .model-card { background: #12141e; border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin-bottom: 0.75rem; }
+    .model-card h4 { font-size: 0.9rem; font-weight: 600; color: var(--text); margin-bottom: 0.3rem; }
+    .model-card .model-id { font-size: 0.75rem; color: var(--accent2); font-family: monospace; margin-bottom: 0.5rem; }
+    .model-card p { font-size: 0.82rem; color: var(--muted); }
+    .mcp-flow { background: #0d1117; border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; font-size: 0.83rem; line-height: 1.8; }
+  </style>
+</head>
+<body>
+
+  <div class="mark-done-bar">
+    <a href="../index.html">← Back to Dashboard</a>
+    <button id="mark-done-btn" data-key="topics/ai-claude.html">Mark as Done</button>
+  </div>
+
+  <div class="topic-page">
+    <div class="breadcrumb">
+      <a href="../index.html">Dashboard</a> / Track 8: AI / Claude, MCP &amp; Building with AI
+    </div>
+
+    <h1 class="topic-title">AI Basics, Claude &amp; MCP</h1>
+    <p class="topic-meta">Level: Beginner → Advanced &nbsp;·&nbsp; Covers: LLM fundamentals · Claude API · MCP · Claude Code · Building AI apps</p>
+
+    <!-- HOW LLMS WORK -->
+    <div class="section">
+      <h3>How Large Language Models Actually Work</h3>
+      <p>An LLM is a neural network trained to <strong>predict the next token</strong> in a sequence. That's it — but emergent capabilities arise at scale.</p>
+      <br/>
+      <div class="concept-grid">
+        <div class="concept-card">
+          <h4>Tokens</h4>
+          <p>Models don't see words — they see <em>tokens</em>. A token ≈ 4 chars. "Hello world" = 2 tokens. Claude's context window is measured in tokens (e.g., 200K tokens ≈ 150K words ≈ a long book).</p>
+        </div>
+        <div class="concept-card">
+          <h4>Transformer Architecture</h4>
+          <p>Attention mechanism: each token attends to all other tokens. Deeper layers = higher-level concepts. Training: predicts next token on billions of text examples. Fine-tuning + RLHF makes it helpful/safe.</p>
+        </div>
+        <div class="concept-card">
+          <h4>Temperature &amp; Sampling</h4>
+          <p>Temperature 0 = deterministic (always picks highest probability token). Temperature 1 = more random/creative. For code: use 0. For brainstorming: use 0.7–1.0.</p>
+        </div>
+        <div class="concept-card">
+          <h4>Context Window</h4>
+          <p>Everything the model can "see" at once — system prompt + conversation history + your message. Claude 3.5+ supports 200K tokens. Models have no memory outside the context window (unless you add RAG/memory systems).</p>
+        </div>
+        <div class="concept-card">
+          <h4>Hallucinations</h4>
+          <p>Models generate plausible-sounding text — they can confidently state false facts. Always verify critical outputs. Reduce with: grounding (RAG), low temperature, explicit instructions to say "I don't know."</p>
+        </div>
+        <div class="concept-card">
+          <h4>Prompt Engineering</h4>
+          <p>The craft of writing inputs that get reliable outputs. Key techniques: role assignment, chain-of-thought, few-shot examples, output format specification, XML tags for structure.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- CLAUDE MODELS -->
+    <div class="section">
+      <h3>Claude Models — Current Lineup (2025)</h3>
+      <p>Anthropic releases model families. Current generation: <strong>Claude 4.5 / 4.6</strong>.</p>
+      <br/>
+      <div class="model-card">
+        <h4>Claude Opus 4.6</h4>
+        <div class="model-id">claude-opus-4-6</div>
+        <p>Most capable. Best for complex reasoning, coding, analysis. Slower and more expensive. Use when quality matters most. Ideal for autonomous agents.</p>
+      </div>
+      <div class="model-card">
+        <h4>Claude Sonnet 4.6</h4>
+        <div class="model-id">claude-sonnet-4-6</div>
+        <p>Best balance of capability and speed/cost. Great for most tasks — chat, coding, analysis, pipelines. This is what Claude Code runs on.</p>
+      </div>
+      <div class="model-card">
+        <h4>Claude Haiku 4.5</h4>
+        <div class="model-id">claude-haiku-4-5-20251001</div>
+        <p>Fastest and cheapest. Use for high-volume, simpler tasks — classification, summarization, quick lookups. Excellent for real-time applications with latency requirements.</p>
+      </div>
+      <br/>
+      <p><strong>Rule of thumb:</strong> Start with Sonnet. Step up to Opus if quality isn't sufficient. Step down to Haiku if cost/latency is the bottleneck.</p>
+    </div>
+
+    <!-- CLAUDE API -->
+    <div class="section">
+      <h3>Claude API — Building With It</h3>
+      <p>The Anthropic API lets you call Claude programmatically. Available in Python, TypeScript/Node, and via HTTP.</p>
+      <br/>
+      <p><strong>Install SDK:</strong></p>
+      <pre><code># Python
+pip install anthropic
+
+# Node.js
+npm install @anthropic-ai/sdk</code></pre>
+      <br/>
+      <p><strong>Basic call — Python:</strong></p>
+      <pre><code>import anthropic
+
+client = anthropic.Anthropic(api_key="your-api-key")  # or set ANTHROPIC_API_KEY env var
+
+message = client.messages.create(
+    model="claude-sonnet-4-6",
+    max_tokens=1024,
+    system="You are a DevOps expert. Be concise.",   # System prompt
+    messages=[
+        {"role": "user", "content": "Explain what a Kubernetes pod is in 2 sentences."}
+    ]
+)
+
+print(message.content[0].text)</code></pre>
+      <br/>
+      <p><strong>Multi-turn conversation — Node.js:</strong></p>
+      <pre><code>import Anthropic from '@anthropic-ai/sdk';
+
+const client = new Anthropic();  // reads ANTHROPIC_API_KEY from env
+
+const messages = [];
+
+async function chat(userMessage) {
+  messages.push({ role: 'user', content: userMessage });
+
+  const response = await client.messages.create({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 2048,
+    system: 'You are a helpful DevOps assistant.',
+    messages,
+  });
+
+  const reply = response.content[0].text;
+  messages.push({ role: 'assistant', content: reply });
+  return reply;
+}
+
+// Usage
+console.log(await chat('What is CI/CD?'));
+console.log(await chat('Give me an example with GitHub Actions.'));</code></pre>
+      <br/>
+      <p><strong>Streaming — for real-time output:</strong></p>
+      <pre><code>const stream = await client.messages.stream({
+  model: 'claude-sonnet-4-6',
+  max_tokens: 1024,
+  messages: [{ role: 'user', content: 'Write a Dockerfile for a Node.js app' }],
+});
+
+for await (const event of stream) {
+  if (event.type === 'content_block_delta') {
+    process.stdout.write(event.delta.text);
+  }
+}</code></pre>
+    </div>
+
+    <!-- TOOL USE -->
+    <div class="section">
+      <h3>Tool Use (Function Calling)</h3>
+      <p>Tool use lets Claude call functions in your code — it decides <em>when</em> and with <em>what arguments</em> to call them. You execute them and return results. This is how AI agents work.</p>
+      <br/>
+      <pre><code>import anthropic
+
+client = anthropic.Anthropic()
+
+tools = [
+    {
+        "name": "get_deployment_status",
+        "description": "Get the current deployment status of a service",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "service_name": {
+                    "type": "string",
+                    "description": "The name of the service to check"
+                },
+                "environment": {
+                    "type": "string",
+                    "enum": ["dev", "staging", "production"],
+                    "description": "The environment to check"
+                }
+            },
+            "required": ["service_name", "environment"]
+        }
+    }
+]
+
+def get_deployment_status(service_name, environment):
+    # Your actual implementation — call Kubernetes, AWS, etc.
+    return {"status": "healthy", "version": "v2.1.3", "pods": 3}
+
+response = client.messages.create(
+    model="claude-sonnet-4-6",
+    max_tokens=1024,
+    tools=tools,
+    messages=[
+        {"role": "user", "content": "Is the auth-service healthy in production?"}
+    ]
+)
+
+# Claude may return a tool_use block
+if response.stop_reason == "tool_use":
+    for block in response.content:
+        if block.type == "tool_use":
+            # Execute the tool
+            result = get_deployment_status(**block.input)
+            # Send result back to Claude
+            final = client.messages.create(
+                model="claude-sonnet-4-6",
+                max_tokens=1024,
+                tools=tools,
+                messages=[
+                    {"role": "user", "content": "Is the auth-service healthy in production?"},
+                    {"role": "assistant", "content": response.content},
+                    {"role": "user", "content": [
+                        {"type": "tool_result", "tool_use_id": block.id, "content": str(result)}
+                    ]}
+                ]
+            )
+            print(final.content[0].text)</code></pre>
+    </div>
+
+    <!-- PROMPT CACHING -->
+    <div class="section">
+      <h3>Prompt Caching — Reduce Costs 90%</h3>
+      <p>If you repeat a large system prompt or document across many API calls, Anthropic caches the prompt and charges only 10% of input tokens on cache hits.</p>
+      <pre><code>response = client.messages.create(
+    model="claude-sonnet-4-6",
+    max_tokens=1024,
+    system=[
+        {
+            "type": "text",
+            "text": "You are a DevOps expert...\n\n" + large_runbook_text,
+            "cache_control": {"type": "ephemeral"}   # Mark for caching
+        }
+    ],
+    messages=[{"role": "user", "content": "How do I roll back a deployment?"}]
+)
+# First call: full price. Subsequent calls within 5 min: 90% cheaper.</code></pre>
+      <div class="tip-box"><strong>When to use:</strong> Any system prompt &gt;1024 tokens that you reuse. Long documents/codebases you query repeatedly. Cache lasts 5 minutes (refreshed on each cache hit).</div>
+    </div>
+
+    <!-- MCP -->
+    <div class="section">
+      <h3>MCP — Model Context Protocol</h3>
+      <p>MCP is an <strong>open standard</strong> (published by Anthropic) that lets AI models connect to external tools, data sources, and services through a unified interface. Think of it as USB-C for AI — one standard, any tool.</p>
+      <br/>
+      <div class="mcp-flow">
+        <strong>How it works:</strong><br/><br/>
+        Host (Claude Desktop / Claude Code / your app)<br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;↕  JSON-RPC over stdio or HTTP+SSE<br/>
+        MCP Server (a process exposing tools, resources, prompts)<br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;↕  native calls<br/>
+        External system (filesystem, database, GitHub, Slack, AWS, etc.)
+      </div>
+      <br/>
+      <p><strong>Three primitives MCP servers expose:</strong></p>
+      <table class="cmd-table">
+        <thead><tr><th>Primitive</th><th>What it is</th><th>Example</th></tr></thead>
+        <tbody>
+          <tr><td><code>Tools</code></td><td>Functions the model can call (like function calling)</td><td><code>create_file</code>, <code>run_query</code>, <code>send_slack</code></td></tr>
+          <tr><td><code>Resources</code></td><td>Read-only data the model can access (like files/URIs)</td><td><code>file:///project/src/</code>, <code>db://users</code></td></tr>
+          <tr><td><code>Prompts</code></td><td>Reusable prompt templates the user/model can invoke</td><td><code>/review-pr</code>, <code>/explain-error</code></td></tr>
+        </tbody>
+      </table>
+      <br/>
+      <p><strong>Configure MCP servers in Claude Desktop or Claude Code:</strong></p>
+      <pre><code>// ~/.claude/settings.json (Claude Code) or Claude Desktop config
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/Users/you/projects"]
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": { "GITHUB_TOKEN": "ghp_..." }
+    },
+    "postgres": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-postgres", "postgresql://localhost/mydb"]
+    }
+  }
+}</code></pre>
+      <br/>
+      <p><strong>Build your own MCP server — Python (FastMCP):</strong></p>
+      <pre><code>from mcp.server.fastmcp import FastMCP
+
+mcp = FastMCP("DevOps Tools")
+
+@mcp.tool()
+def get_pod_status(namespace: str, pod_name: str) -> dict:
+    """Get the status of a Kubernetes pod"""
+    import subprocess, json
+    result = subprocess.run(
+        ["kubectl", "get", "pod", pod_name, "-n", namespace, "-o", "json"],
+        capture_output=True, text=True
+    )
+    return json.loads(result.stdout)
+
+@mcp.tool()
+def tail_logs(service: str, lines: int = 50) -> str:
+    """Get the last N log lines from a service"""
+    import subprocess
+    result = subprocess.run(
+        ["kubectl", "logs", f"deployment/{service}", "--tail", str(lines)],
+        capture_output=True, text=True
+    )
+    return result.stdout
+
+if __name__ == "__main__":
+    mcp.run()</code></pre>
+      <br/>
+      <p><strong>Then configure it:</strong></p>
+      <pre><code>{
+  "mcpServers": {
+    "devops-tools": {
+      "command": "python",
+      "args": ["/path/to/your_mcp_server.py"]
+    }
+  }
+}</code></pre>
+      <div class="tip-box"><strong>Real power:</strong> Once your MCP server is running, Claude Code can call your Kubernetes cluster, query your database, check your monitoring system — all through natural language. "Show me the logs for auth-service and check if there are any errors in the last 100 lines."</div>
+    </div>
+
+    <!-- CLAUDE CODE -->
+    <div class="section">
+      <h3>Claude Code — AI in Your Terminal</h3>
+      <p>Claude Code is the <strong>official CLI for Claude</strong>. It's an agentic coding assistant that can read/write files, run commands, search codebases, and make multi-step decisions.</p>
+      <br/>
+      <pre><code># Install
+npm install -g @anthropic-ai/claude-code
+
+# Start a session in your project
+cd your-project
+claude
+
+# One-shot command
+claude "fix the failing test in src/auth.test.ts"
+claude "add error handling to all API endpoints"</code></pre>
+      <br/>
+      <table class="cmd-table">
+        <thead><tr><th>Feature</th><th>How to use</th></tr></thead>
+        <tbody>
+          <tr><td>Slash commands</td><td><code>/help</code>, <code>/clear</code>, <code>/review-pr</code>, <code>/commit</code> — built-in shortcuts</td></tr>
+          <tr><td>MCP integration</td><td>Configure servers in <code>~/.claude/settings.json</code> — Claude can then use those tools in its responses</td></tr>
+          <tr><td>CLAUDE.md</td><td>Put instructions at the root of your repo — Claude reads this as persistent context for every session in that project</td></tr>
+          <tr><td>Hooks</td><td>Configure shell commands that run before/after tool calls — e.g., auto-run tests after edits</td></tr>
+          <tr><td>Skills</td><td>Custom slash commands you define — reusable prompts/workflows packaged as <code>/my-skill</code></td></tr>
+          <tr><td>Plan mode</td><td>Claude shows its plan before executing — approve before changes happen</td></tr>
+          <tr><td>Agents</td><td>Spawn sub-agents for parallel work — Claude orchestrates multiple AI workers on your task</td></tr>
+        </tbody>
+      </table>
+      <br/>
+      <p><strong>CLAUDE.md example:</strong></p>
+      <pre><code># Project: Payments Service
+
+## Stack
+- Python 3.12, FastAPI, PostgreSQL, Redis
+- Tests: pytest, coverage must stay above 85%
+- Formatting: black, isort
+
+## Rules
+- Never modify database migrations directly — create a new migration
+- All API endpoints must have OpenAPI docstrings
+- Run `make test` before committing
+
+## Architecture
+- src/api/ — FastAPI routers
+- src/services/ — business logic (no DB access here)
+- src/models/ — SQLAlchemy models</code></pre>
+    </div>
+
+    <!-- SKILLS -->
+    <div class="section">
+      <h3>Claude Code Skills — Custom Slash Commands</h3>
+      <p>Skills are markdown files that define reusable prompts invocable as <code>/skill-name</code> in Claude Code.</p>
+      <br/>
+      <p><strong>Create a skill at <code>~/.claude/skills/deploy-check.md</code>:</strong></p>
+      <pre><code># Deploy Readiness Check
+
+Run a comprehensive pre-deploy checklist:
+
+1. Check all tests pass: `npm test`
+2. Check for any TODO/FIXME comments in changed files
+3. Verify no console.log statements in production code
+4. Check package.json version is bumped
+5. Verify environment variables are documented
+6. Run security scan: `npm audit`
+7. Check that the CHANGELOG is updated
+
+Report findings in a checklist format. Block deploy if any critical issues found.</code></pre>
+      <br/>
+      <p>Now in Claude Code, type <code>/deploy-check</code> and it runs through your full pre-deploy workflow.</p>
+      <br/>
+      <p><strong>Skill with arguments:</strong></p>
+      <pre><code># Review PR
+
+Review the PR at $ARGUMENTS focusing on:
+- Security vulnerabilities
+- Missing error handling
+- Test coverage gaps
+- Performance issues
+- Breaking API changes
+
+Be specific — quote the code and explain why it's a problem.</code></pre>
+      <p>Usage: <code>/review-pr 123</code></p>
+    </div>
+
+    <!-- AGENTS SDK -->
+    <div class="section">
+      <h3>Building AI Agents</h3>
+      <p>Agents are AI systems that can take sequences of actions to complete a task. Claude is well-suited for agentic tasks because of its large context window, tool use, and ability to plan.</p>
+      <br/>
+      <p><strong>Simple agent loop pattern:</strong></p>
+      <pre><code>import anthropic
+
+client = anthropic.Anthropic()
+
+def run_agent(task: str, tools: list, tool_executor):
+    """
+    A simple agent loop: run until Claude stops requesting tools.
+    """
+    messages = [{"role": "user", "content": task}]
+
+    while True:
+        response = client.messages.create(
+            model="claude-opus-4-6",   # Use Opus for agents — best reasoning
+            max_tokens=4096,
+            tools=tools,
+            messages=messages,
+        )
+
+        # Add Claude's response to history
+        messages.append({"role": "assistant", "content": response.content})
+
+        if response.stop_reason == "end_turn":
+            # Claude is done — extract final text
+            for block in response.content:
+                if hasattr(block, 'text'):
+                    return block.text
+
+        if response.stop_reason == "tool_use":
+            # Execute all requested tools
+            tool_results = []
+            for block in response.content:
+                if block.type == "tool_use":
+                    result = tool_executor(block.name, block.input)
+                    tool_results.append({
+                        "type": "tool_result",
+                        "tool_use_id": block.id,
+                        "content": str(result)
+                    })
+
+            messages.append({"role": "user", "content": tool_results})</code></pre>
+      <br/>
+      <div class="tip-box"><strong>Agent best practices:</strong><br/>
+      • Add a max_iterations limit — prevent infinite loops<br/>
+      • Log every tool call — agents are hard to debug without traces<br/>
+      • Use Opus for reasoning-heavy agents, Sonnet for lighter ones<br/>
+      • Give Claude a clear stopping condition in the system prompt<br/>
+      • Test with simple tasks before complex multi-step ones</div>
+    </div>
+
+    <!-- AI IN DEVOPS -->
+    <div class="section">
+      <h3>AI in Your DevOps Workflow — Practical Now</h3>
+      <table class="cmd-table">
+        <thead><tr><th>Use Case</th><th>How</th></tr></thead>
+        <tbody>
+          <tr><td>PR review automation</td><td>GitHub Action calls Claude API on every PR — flags security issues, missing tests, breaking changes. Comment the review on the PR.</td></tr>
+          <tr><td>Incident diagnosis</td><td>MCP server exposing CloudWatch/Datadog/PagerDuty. Claude reads alerts, queries logs, proposes root cause.</td></tr>
+          <tr><td>Pipeline failure explanation</td><td>On CI failure, pipe logs to Claude API — get human-readable explanation + suggested fix. Auto-comment on the commit.</td></tr>
+          <tr><td>Runbook automation</td><td>Convert runbooks to MCP tools. Claude executes runbook steps based on alert type.</td></tr>
+          <tr><td>IaC generation</td><td>Describe infrastructure in plain English → Claude generates Terraform/CloudFormation. Always review before apply.</td></tr>
+          <tr><td>Documentation</td><td>Claude reads your code/API changes and writes changelog entries, API docs, architecture diagrams (Mermaid).</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- PROJECT -->
+    <div class="section">
+      <h3>Hands-On Project: Build a CI Failure Explainer</h3>
+      <p style="margin-bottom:1rem; color: var(--muted);">A GitHub Action that calls Claude to explain CI failures in plain English and comments on the commit.</p>
+
+      <div class="project-step">
+        <div class="step-num">1</div>
+        <div>
+          <strong>Set up API key</strong>
+          <pre><code># In your GitHub repo → Settings → Secrets → Actions
+# Add: ANTHROPIC_API_KEY = your key from console.anthropic.com</code></pre>
+        </div>
+      </div>
+
+      <div class="project-step">
+        <div class="step-num">2</div>
+        <div>
+          <strong>Create the explainer script</strong>
+          <pre><code># .github/scripts/explain_failure.py
+import anthropic, sys, os
+
+def explain_failure(logs: str) -> str:
+    client = anthropic.Anthropic()
+    response = client.messages.create(
+        model="claude-haiku-4-5-20251001",   # Use Haiku — fast and cheap for this
+        max_tokens=512,
+        system="You are a DevOps expert. Given CI failure logs, explain the root cause in 2-3 sentences and suggest a fix. Be direct.",
+        messages=[
+            {"role": "user", "content": f"CI failure logs:\n\n{logs[:8000]}"}
+        ]
+    )
+    return response.content[0].text
+
+if __name__ == "__main__":
+    logs = sys.stdin.read()
+    print(explain_failure(logs))</code></pre>
+        </div>
+      </div>
+
+      <div class="project-step">
+        <div class="step-num">3</div>
+        <div>
+          <strong>Create the GitHub Actions workflow</strong>
+          <pre><code># .github/workflows/explain-failures.yml
+name: Explain CI Failures
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+
+jobs:
+  explain:
+    if: github.event.workflow_run.conclusion == 'failure'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get failure logs
+        id: logs
+        run: |
+          # Download logs from the failed workflow
+          gh run view ${{ github.event.workflow_run.id }} --log-failed > failure.log 2>&1 || true
+          echo "logfile=failure.log" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Explain failure with Claude
+        run: |
+          pip install anthropic -q
+          EXPLANATION=$(cat failure.log | python .github/scripts/explain_failure.py)
+          echo "EXPLANATION<<EOF" >> $GITHUB_ENV
+          echo "$EXPLANATION" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+      - name: Comment on commit
+        run: |
+          gh api repos/${{ github.repository }}/commits/${{ github.event.workflow_run.head_sha }}/comments \
+            -f body="🤖 **CI Failure Analysis**
+
+          ${{ env.EXPLANATION }}
+
+          [View failed run](${{ github.event.workflow_run.html_url }})"
+        env:
+          GH_TOKEN: ${{ github.token }}</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- RESOURCES -->
+    <div class="section">
+      <h3>Resources</h3>
+      <div class="resource-row">
+        <span class="resource-type rt-docs">DOCS</span>
+        <a href="https://docs.anthropic.com" target="_blank">Anthropic API Documentation</a>
+        — Full reference for Claude API, tool use, streaming, prompt caching.
+      </div>
+      <div class="resource-row">
+        <span class="resource-type rt-docs">DOCS</span>
+        <a href="https://modelcontextprotocol.io/docs" target="_blank">MCP Documentation</a>
+        — Official MCP spec, SDKs, server examples, quickstart.
+      </div>
+      <div class="resource-row">
+        <span class="resource-type rt-free">FREE</span>
+        <a href="https://github.com/modelcontextprotocol/servers" target="_blank">Official MCP Servers (GitHub)</a>
+        — Reference implementations: filesystem, GitHub, Postgres, Slack, Brave search, etc.
+      </div>
+      <div class="resource-row">
+        <span class="resource-type rt-docs">DOCS</span>
+        <a href="https://docs.anthropic.com/en/docs/claude-code/overview" target="_blank">Claude Code Documentation</a>
+        — Claude Code features: hooks, skills, MCP integration, CLAUDE.md, agents.
+      </div>
+      <div class="resource-row">
+        <span class="resource-type rt-free">FREE</span>
+        <a href="https://www.anthropic.com/research/building-effective-agents" target="_blank">Building Effective Agents — Anthropic Blog</a>
+        — Best practices for agentic AI systems. Required reading.
+      </div>
+      <div class="resource-row">
+        <span class="resource-type rt-free">FREE</span>
+        <a href="https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/overview" target="_blank">Prompt Engineering Guide — Anthropic</a>
+        — Official guide on getting the best out of Claude.
+      </div>
+      <div class="resource-row">
+        <span class="resource-type rt-practice">PRACTICE</span>
+        <a href="https://console.anthropic.com" target="_blank">Anthropic Console</a>
+        — Get API key, test prompts in Workbench, view usage. Start here.
+      </div>
+    </div>
+
+    <!-- QUIZ -->
+    <div class="section">
+      <h3>Check Your Understanding</h3>
+      <div class="quiz-q">
+        <p><strong>Q1.</strong> You're querying a 50-page technical runbook via the API in a loop (100 calls/day). How do you reduce costs?</p>
+        <details><summary>Show answer</summary>
+          <p>Use <strong>prompt caching</strong>. Add <code>"cache_control": {"type": "ephemeral"}</code> to the system message containing the runbook. First call charges full price; subsequent calls within 5 minutes charge 10% of input tokens. 100 calls/day → ~90% cost reduction on that portion.</p>
+        </details>
+      </div>
+      <div class="quiz-q">
+        <p><strong>Q2.</strong> What is the difference between MCP Tools and MCP Resources?</p>
+        <details><summary>Show answer</summary>
+          <p><strong>Tools</strong> are callable functions with side effects (write, query, execute) — the model decides when to call them. <strong>Resources</strong> are read-only data the model can access (like files or DB records) — they're surfaced as context rather than function calls. Tools = actions, Resources = data.</p>
+        </details>
+      </div>
+      <div class="quiz-q">
+        <p><strong>Q3.</strong> Why use Claude Opus for an agentic task but Haiku for classifying support tickets?</p>
+        <details><summary>Show answer</summary>
+          <p>Agents require multi-step planning, tool selection, error recovery, and complex reasoning — Opus's superior reasoning justifies the higher cost when each run might cost $0.50 but save hours of work. Ticket classification is a simple, high-volume task — thousands per day. Haiku costs ~20x less per call and is fast enough for real-time response. Match model capability to task complexity.</p>
+        </details>
+      </div>
+      <div class="quiz-q">
+        <p><strong>Q4.</strong> What should go in a CLAUDE.md file?</p>
+        <details><summary>Show answer</summary>
+          <p>Project-specific persistent context that Claude should always know: tech stack &amp; versions, coding conventions &amp; style rules, architecture overview (key directories, data flows), commands to run (tests, lint, build), constraints (what NOT to do), and any domain knowledge specific to the project. It's Claude's onboarding doc — write it like you'd brief a new engineer.</p>
+        </details>
+      </div>
+    </div>
+
+  </div>
+
+  <footer style="max-width:820px; margin: 2rem auto 0; padding: 1.5rem; border-top: 1px solid var(--border); text-align:center; color: var(--muted); font-size:0.82rem;">
+    <a href="../index.html" style="color: var(--accent2);">← Back to Dashboard</a>
+  </footer>
+
+  <script src="../js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Git & Branching Strategies — Upskill</title>
+  <link rel="stylesheet" href="../css/style.css" />
+  <style>
+    .mark-done-bar {
+      position: sticky;
+      top: 0;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      padding: 0.75rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 10;
+    }
+    .mark-done-bar a { color: var(--accent2); text-decoration: none; font-size: 0.85rem; }
+    #mark-done-btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 0.5rem 1.25rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+    #mark-done-btn:hover:not(:disabled) { background: #4f46e5; }
+    .concept-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-top: 0.75rem;
+    }
+    .concept-card {
+      background: #12141e;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+    }
+    .concept-card h4 { font-size: 0.88rem; color: var(--accent2); margin-bottom: 0.4rem; }
+    .concept-card p  { font-size: 0.82rem; color: var(--muted); }
+    .cmd-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .cmd-table th { text-align: left; color: var(--muted); font-size: 0.75rem; text-transform: uppercase; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--border); }
+    .cmd-table td { padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+    .cmd-table tr:last-child td { border-bottom: none; }
+    .cmd-table code { font-size: 0.82rem; }
+    .project-step { display: flex; gap: 1rem; margin-bottom: 1rem; }
+    .step-num { background: var(--accent); color: #fff; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; flex-shrink: 0; margin-top: 0.1rem; }
+    .quiz-q { margin-bottom: 1rem; }
+    .quiz-q p { font-size: 0.9rem; margin-bottom: 0.5rem; }
+    .quiz-q details summary { cursor: pointer; color: var(--accent2); font-size: 0.85rem; }
+    .quiz-q details p { margin-top: 0.5rem; font-size: 0.85rem; color: var(--muted); }
+  </style>
+</head>
+<body>
+
+  <div class="mark-done-bar">
+    <a href="../index.html">← Back to Dashboard</a>
+    <button id="mark-done-btn" data-key="topics/git.html">Mark as Done</button>
+  </div>
+
+  <div class="topic-page">
+    <div class="breadcrumb">
+      <a href="../index.html">Dashboard</a> / Track 1: Core Foundations / Git &amp; Branching
+    </div>
+
+    <h1 class="topic-title">Git &amp; Branching Strategies</h1>
+    <p class="topic-meta">Level: Beginner → Intermediate &nbsp;·&nbsp; Estimated: 2–3 days of reading + practice</p>
+
+    <!-- ── What is Git ── -->
+    <div class="section">
+      <h3>What is Git and Why It Matters</h3>
+      <p>Git is a <strong>distributed version control system</strong>. Every developer has a full copy of the repo — including its entire history — on their machine. There is no single "lock" on files; multiple people can work in parallel.</p>
+      <br/>
+      <p>Key things Git tracks:</p>
+      <ul>
+        <li><strong>Snapshots</strong>, not diffs — each commit stores a snapshot of every file (using content-addressable storage via SHA-1/SHA-256 hashes).</li>
+        <li><strong>The object model</strong> — blob (file content), tree (directory), commit (snapshot + metadata), tag.</li>
+        <li><strong>Refs</strong> — branches and tags are just pointers (files containing a commit hash) stored in <code>.git/refs/</code>.</li>
+        <li><strong>HEAD</strong> — a pointer to the current branch or commit you have checked out.</li>
+      </ul>
+    </div>
+
+    <!-- ── Internal Model ── -->
+    <div class="section">
+      <h3>How Git Works Internally (the part most people miss)</h3>
+      <p>Understanding this makes every Git command click.</p>
+      <div class="concept-grid">
+        <div class="concept-card">
+          <h4>Object Store</h4>
+          <p>Everything in Git is an <em>object</em> (blob/tree/commit/tag) stored in <code>.git/objects/</code>, named by its SHA hash. Git is fundamentally a content-addressed filesystem.</p>
+        </div>
+        <div class="concept-card">
+          <h4>The Three Areas</h4>
+          <p><strong>Working tree</strong> → your files on disk. <strong>Index / staging area</strong> → what will go into the next commit. <strong>Repository</strong> → committed history.</p>
+        </div>
+        <div class="concept-card">
+          <h4>Branches are cheap</h4>
+          <p>A branch is just a 41-byte file (a SHA hash). Creating a branch is O(1) — that's why branching in Git is fast and encouraged.</p>
+        </div>
+        <div class="concept-card">
+          <h4>Merge vs Rebase</h4>
+          <p><strong>Merge</strong> creates a merge commit preserving history. <strong>Rebase</strong> replays commits on top of a new base, creating a linear history but rewriting commit SHAs.</p>
+        </div>
+        <div class="concept-card">
+          <h4>Fast-forward</h4>
+          <p>If the current branch is a direct ancestor of the target, Git just moves the pointer — no merge commit needed.</p>
+        </div>
+        <div class="concept-card">
+          <h4>Remote refs</h4>
+          <p><code>origin/main</code> is a <em>remote-tracking branch</em> — a local copy of what the remote looked like when you last fetched. <code>git fetch</code> updates it; <code>git pull</code> fetches + merges.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Commands ── -->
+    <div class="section">
+      <h3>Essential Commands You Must Know</h3>
+      <table class="cmd-table">
+        <thead><tr><th>Command</th><th>What it does</th></tr></thead>
+        <tbody>
+          <tr><td><code>git init</code></td><td>Initialize a new repo (creates <code>.git/</code> directory).</td></tr>
+          <tr><td><code>git clone &lt;url&gt;</code></td><td>Copy a remote repo locally, sets up <code>origin</code> remote.</td></tr>
+          <tr><td><code>git add &lt;file&gt;</code> / <code>git add -p</code></td><td>Stage changes. <code>-p</code> lets you stage interactively by hunk.</td></tr>
+          <tr><td><code>git commit -m "msg"</code></td><td>Create a commit snapshot in the repo.</td></tr>
+          <tr><td><code>git status</code></td><td>Show working tree vs index vs HEAD.</td></tr>
+          <tr><td><code>git log --oneline --graph --all</code></td><td>Visualize the full branch history as a graph.</td></tr>
+          <tr><td><code>git diff</code> / <code>git diff --staged</code></td><td>Diff working tree vs index / index vs HEAD.</td></tr>
+          <tr><td><code>git branch &lt;name&gt;</code></td><td>Create a branch (doesn't switch to it).</td></tr>
+          <tr><td><code>git switch -c &lt;name&gt;</code></td><td>Create AND switch to a new branch (modern way).</td></tr>
+          <tr><td><code>git merge &lt;branch&gt;</code></td><td>Merge branch into current branch.</td></tr>
+          <tr><td><code>git rebase &lt;branch&gt;</code></td><td>Replay current branch commits on top of &lt;branch&gt;.</td></tr>
+          <tr><td><code>git stash</code> / <code>git stash pop</code></td><td>Temporarily shelve dirty working tree.</td></tr>
+          <tr><td><code>git reset HEAD~1</code></td><td>Undo the last commit, keep changes staged. (<code>--hard</code> discards changes too).</td></tr>
+          <tr><td><code>git cherry-pick &lt;sha&gt;</code></td><td>Apply a single commit from another branch.</td></tr>
+          <tr><td><code>git bisect start</code></td><td>Binary-search commit history to find which commit introduced a bug.</td></tr>
+          <tr><td><code>git reflog</code></td><td>See ALL HEAD movements — your safety net to recover "lost" commits.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ── Branching Strategies ── -->
+    <div class="section">
+      <h3>Branching Strategies</h3>
+      <p>Each strategy is a social contract for how your team uses branches. No one is universally best — the right choice depends on team size, release cadence, and deployment model.</p>
+      <br/>
+
+      <div class="concept-grid">
+        <div class="concept-card">
+          <h4>Feature Branches</h4>
+          <p>Each feature or bug lives on its own branch. Merged via PR when ready. Good default for most teams. Risk: long-lived branches diverge.</p>
+        </div>
+        <div class="concept-card">
+          <h4>Git Flow</h4>
+          <p><code>main</code> (production) + <code>develop</code> (integration) + feature/release/hotfix branches. Structured, predictable. Can be heavy for fast-moving teams.</p>
+        </div>
+        <div class="concept-card">
+          <h4>GitHub Flow</h4>
+          <p>Single <code>main</code> branch. Feature branches PR directly into main. Simple, fast. Requires CI + feature flags if you deploy from main continuously.</p>
+        </div>
+        <div class="concept-card">
+          <h4>Trunk-Based Development</h4>
+          <p>Everyone integrates directly into <code>main</code> (or very short-lived branches, &lt;1 day). Maximizes integration frequency. Requires strong CI and feature flags. Preferred by Google, Meta.</p>
+        </div>
+        <div class="concept-card">
+          <h4>Release Branches</h4>
+          <p>Cut a release branch when stabilizing for release. Hotfixes go into release branch AND back-merged to main. Common in software with multiple live versions.</p>
+        </div>
+        <div class="concept-card">
+          <h4>Environment Branches</h4>
+          <p>Branches named after environments (dev, staging, prod). Pushes trigger deploys. Simple but can get messy — usually better to use pipelines + tags instead.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PR Workflow ── -->
+    <div class="section">
+      <h3>Pull Request (PR) Workflow</h3>
+      <p>PRs are the gate between a feature branch and the main line. A good PR workflow includes:</p>
+      <ul>
+        <li><strong>Small, focused PRs</strong> — easier to review, less conflict risk. Aim for &lt;400 lines.</li>
+        <li><strong>Descriptive title + description</strong> — what does this change and why.</li>
+        <li><strong>CI checks pass</strong> before requesting review (tests, linting, security scan).</li>
+        <li><strong>At least one reviewer</strong> — code review catches bugs and shares knowledge.</li>
+        <li><strong>Squash or merge strategy</strong> — agree as a team. Squash = clean linear history. Merge commit = full context preserved.</li>
+        <li><strong>Branch protection rules</strong> — require PR + passing CI before merging to main.</li>
+      </ul>
+    </div>
+
+    <!-- ── Practice Project ── -->
+    <div class="section">
+      <h3>Hands-On Project: Simulate a Team Workflow</h3>
+      <p style="margin-bottom:1rem; color: var(--muted);">Do this on your local machine. No GitHub account needed for steps 1–5.</p>
+
+      <div class="project-step">
+        <div class="step-num">1</div>
+        <div>
+          <strong>Set up a bare repo as a "remote"</strong>
+          <pre><code>mkdir ~/git-practice && cd ~/git-practice
+git init --bare remote.git
+git clone remote.git alice
+git clone remote.git bob</code></pre>
+          <p style="font-size:0.85rem; color: var(--muted); margin-top:0.4rem;">You now have two local "developer" clones sharing the same remote.</p>
+        </div>
+      </div>
+
+      <div class="project-step">
+        <div class="step-num">2</div>
+        <div>
+          <strong>Alice creates a feature branch and makes commits</strong>
+          <pre><code>cd ~/git-practice/alice
+echo "# My Project" > README.md
+git add README.md && git commit -m "init: add README"
+git push origin main
+
+git switch -c feature/login
+echo "login logic here" > login.py
+git add login.py && git commit -m "feat: add login module"
+git push origin feature/login</code></pre>
+        </div>
+      </div>
+
+      <div class="project-step">
+        <div class="step-num">3</div>
+        <div>
+          <strong>Bob makes a conflicting change on main</strong>
+          <pre><code>cd ~/git-practice/bob
+git pull origin main
+echo "logout logic" > login.py
+git add login.py && git commit -m "feat: add logout"
+git push origin main</code></pre>
+        </div>
+      </div>
+
+      <div class="project-step">
+        <div class="step-num">4</div>
+        <div>
+          <strong>Alice rebases her branch on top of main — resolve the conflict</strong>
+          <pre><code>cd ~/git-practice/alice
+git fetch origin
+git rebase origin/main
+# Git will pause at the conflict — edit login.py to merge both changes
+git add login.py
+git rebase --continue
+git push origin feature/login --force-with-lease</code></pre>
+        </div>
+      </div>
+
+      <div class="project-step">
+        <div class="step-num">5</div>
+        <div>
+          <strong>Simulate a PR merge + tag a release</strong>
+          <pre><code>cd ~/git-practice/alice
+git switch main && git pull origin main
+git merge --no-ff feature/login -m "merge: feature/login -> main"
+git push origin main
+git tag v1.0.0 -m "First release"
+git push origin v1.0.0</code></pre>
+        </div>
+      </div>
+
+      <div class="project-step">
+        <div class="step-num">6</div>
+        <div>
+          <strong>Explore the object store</strong>
+          <pre><code>ls .git/objects/        # see the SHA files
+git cat-file -p HEAD    # inspect the commit object
+git cat-file -p HEAD^{tree}  # inspect the tree object
+git reflog              # see every HEAD movement</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Resources ── -->
+    <div class="section">
+      <h3>Resources</h3>
+
+      <div class="resource-row">
+        <span class="resource-type rt-free">FREE</span>
+        <a href="https://git-scm.com/book/en/v2" target="_blank">Pro Git Book (official, free online)</a>
+        — The most complete Git reference. Read chapters 1–3 and 7 first.
+      </div>
+      <div class="resource-row">
+        <span class="resource-type rt-free">FREE</span>
+        <a href="https://learngitbranching.js.org/" target="_blank">Learn Git Branching (interactive)</a>
+        — Visual, gamified, browser-based. Best for internalizingrebase/merge.
+      </div>
+      <div class="resource-row">
+        <span class="resource-type rt-video">VIDEO</span>
+        <a href="https://www.youtube.com/watch?v=RGOj5yH7evk" target="_blank">Git and GitHub for Beginners — freeCodeCamp (YouTube)</a>
+        — 1h crash course.
+      </div>
+      <div class="resource-row">
+        <span class="resource-type rt-docs">DOCS</span>
+        <a href="https://www.atlassian.com/git/tutorials/comparing-workflows" target="_blank">Atlassian: Comparing Workflows</a>
+        — Great visual comparison of Git Flow, GitHub Flow, Trunk-Based.
+      </div>
+      <div class="resource-row">
+        <span class="resource-type rt-free">FREE</span>
+        <a href="https://trunkbaseddevelopment.com/" target="_blank">trunkbaseddevelopment.com</a>
+        — Deep dive on TBD strategy used by top engineering orgs.
+      </div>
+      <div class="resource-row">
+        <span class="resource-type rt-practice">PRACTICE</span>
+        <a href="https://ohshitgit.com/" target="_blank">Oh Shit, Git!?</a>
+        — Plain-English fixes for common Git mistakes. Bookmark this.
+      </div>
+      <div class="resource-row">
+        <span class="resource-type rt-docs">INTERNALS</span>
+        <a href="https://git-scm.com/book/en/v2/Git-Internals-Plumbing-and-Porcelain" target="_blank">Pro Git — Chapter 10: Git Internals</a>
+        — Object model, pack files, refs. Read this to understand <em>why</em> commands work.
+      </div>
+    </div>
+
+    <!-- ── Quiz ── -->
+    <div class="section">
+      <h3>Check Your Understanding</h3>
+
+      <div class="quiz-q">
+        <p><strong>Q1.</strong> What is the difference between <code>git fetch</code> and <code>git pull</code>?</p>
+        <details><summary>Show answer</summary>
+          <p><code>git fetch</code> downloads remote changes and updates your remote-tracking branches (e.g. <code>origin/main</code>) but does NOT touch your working branch. <code>git pull</code> = <code>git fetch</code> + <code>git merge</code> (or rebase, depending on config). Prefer <code>fetch</code> first so you can inspect what changed before merging.</p>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p><strong>Q2.</strong> When would you use <code>git rebase</code> instead of <code>git merge</code>, and what's the golden rule?</p>
+        <details><summary>Show answer</summary>
+          <p>Use rebase to keep a linear history on your feature branch before merging. Golden rule: <strong>never rebase commits that have been pushed to a shared branch</strong> — it rewrites history (new SHA hashes) and breaks other people's branches. Use <code>--force-with-lease</code> (not <code>--force</code>) when you must push a rebased branch.</p>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p><strong>Q3.</strong> What is <code>git reflog</code> and why is it useful?</p>
+        <details><summary>Show answer</summary>
+          <p>Reflog records every time HEAD moved — branch switches, resets, rebases, etc. It lets you recover "lost" commits. Even after a <code>git reset --hard</code> or accidental branch delete, you can find the old commit SHA in reflog and restore it.</p>
+        </details>
+      </div>
+
+      <div class="quiz-q">
+        <p><strong>Q4.</strong> Your team wants to deploy multiple times per day. Which branching strategy fits best and why?</p>
+        <details><summary>Show answer</summary>
+          <p>Trunk-Based Development (TBD). Features merge to main quickly (ideally daily), preventing long-lived branch divergence. Requires: strong CI, feature flags to hide incomplete features, and fast PR turnarounds. GitHub Flow also works at this cadence but TBD maximizes integration frequency.</p>
+        </details>
+      </div>
+    </div>
+
+  </div>
+
+  <footer style="max-width:820px; margin: 2rem auto 0; padding: 1.5rem; border-top: 1px solid var(--border); text-align:center; color: var(--muted); font-size:0.82rem;">
+    <a href="../index.html" style="color: var(--accent2);">← Back to Dashboard</a>
+  </footer>
+
+  <script src="../js/main.js"></script>
+</body>
+</html>

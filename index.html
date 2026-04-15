@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Upskill Dashboard</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    /* ── Tech News ── */
+    .news-section { max-width: 900px; margin: 0 auto 2rem; padding: 0 1.5rem; }
+    .news-section h2 { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 0.85rem; display: flex; align-items: center; gap: 0.5rem; }
+    .news-section h2 span.live-dot { width: 7px; height: 7px; background: var(--green); border-radius: 50%; display: inline-block; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+    .news-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0.75rem; }
+    .news-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.9rem 1rem; transition: border-color 0.2s; }
+    .news-card:hover { border-color: var(--accent); }
+    .news-card a { color: var(--text); text-decoration: none; font-size: 0.85rem; font-weight: 500; line-height: 1.45; display: block; margin-bottom: 0.4rem; }
+    .news-card a:hover { color: var(--accent2); }
+    .news-meta { font-size: 0.72rem; color: var(--muted); display: flex; gap: 0.75rem; }
+    .news-source { background: #1f2937; border-radius: 4px; padding: 0.1rem 0.4rem; font-size: 0.68rem; }
+    .news-loading { color: var(--muted); font-size: 0.85rem; padding: 1rem 0; text-align: center; }
+    .news-tabs { display: flex; gap: 0.5rem; margin-bottom: 0.85rem; flex-wrap: wrap; }
+    .news-tab { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 0.3rem 0.75rem; font-size: 0.78rem; cursor: pointer; color: var(--muted); transition: all 0.15s; }
+    .news-tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .news-tab:hover:not(.active) { border-color: var(--accent); color: var(--text); }
+    .news-refresh { background: none; border: 1px solid var(--border); border-radius: 6px; padding: 0.25rem 0.65rem; font-size: 0.72rem; color: var(--muted); cursor: pointer; margin-left: auto; transition: all 0.15s; }
+    .news-refresh:hover { border-color: var(--accent2); color: var(--accent2); }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <h1>Upskill Dashboard</h1>
+      <p class="subtitle">DevOps · Cloud · AI · Security · Observability</p>
+    </div>
+  </header>
+
+  <main>
+    <!-- ── LIVE TECH NEWS ── -->
+    <section class="news-section">
+      <h2>
+        <span class="live-dot"></span>
+        Live Tech News
+        <button class="news-refresh" id="news-refresh-btn">Refresh</button>
+      </h2>
+      <div class="news-tabs">
+        <button class="news-tab active" data-feed="hn">Hacker News</button>
+        <button class="news-tab" data-feed="devto">Dev.to</button>
+        <button class="news-tab" data-feed="lobsters">Lobsters</button>
+      </div>
+      <div class="news-grid" id="news-grid">
+        <div class="news-loading">Loading latest stories...</div>
+      </div>
+    </section>
+
+    <!-- ── PROGRESS ── -->
+    <section class="progress-bar-section">
+      <div class="progress-wrap">
+        <span>Overall Progress</span>
+        <div class="bar"><div class="bar-fill" style="width: 0%"></div></div>
+        <span class="pct">0%</span>
+      </div>
+    </section>
+
+    <section class="tracks">
+
+      <!-- Track 1 -->
+      <div class="track" id="track-core">
+        <div class="track-header">
+          <span class="track-icon">🏗️</span>
+          <div>
+            <h2>1. Core Foundations</h2>
+            <p>Git, Linux, Networking — the bedrock of everything.</p>
+          </div>
+          <span class="badge todo">Not started</span>
+        </div>
+        <ul class="topic-list">
+          <li><a href="topics/git.html">Git &amp; Branching Strategies</a> <span class="tag">Beginner</span></li>
+          <li><a href="topics/linux.html">Linux Basics</a> <span class="tag">Beginner</span></li>
+          <li><a href="topics/networking.html">Networking Basics</a> <span class="tag">Beginner</span></li>
+        </ul>
+      </div>
+
+      <!-- Track 2 -->
+      <div class="track" id="track-ci">
+        <div class="track-header">
+          <span class="track-icon">⚙️</span>
+          <div>
+            <h2>2. Continuous Integration</h2>
+            <p>Build systems, automated testing, CI tools.</p>
+          </div>
+          <span class="badge todo">Not started</span>
+        </div>
+        <ul class="topic-list">
+          <li><a href="topics/ci-concepts.html">CI Concepts</a> <span class="tag">Beginner</span></li>
+          <li><a href="topics/build-systems.html">Build Systems</a> <span class="tag">Intermediate</span></li>
+          <li><a href="topics/automated-testing.html">Automated Testing in CI</a> <span class="tag">Intermediate</span></li>
+          <li><a href="topics/github-actions.html">GitHub Actions Deep Dive</a> <span class="tag">Intermediate</span></li>
+        </ul>
+      </div>
+
+      <!-- Track 3 -->
+      <div class="track" id="track-cd">
+        <div class="track-header">
+          <span class="track-icon">🚀</span>
+          <div>
+            <h2>3. CD &amp; Deployment</h2>
+            <p>Delivery vs deployment, release strategies, rollback.</p>
+          </div>
+          <span class="badge todo">Not started</span>
+        </div>
+        <ul class="topic-list">
+          <li><a href="topics/cd-concepts.html">CD Concepts &amp; Environments</a> <span class="tag">Beginner</span></li>
+          <li><a href="topics/release-strategies.html">Blue/Green, Canary, Rolling</a> <span class="tag">Intermediate</span></li>
+          <li><a href="topics/rollback.html">Rollback &amp; Recovery</a> <span class="tag">Intermediate</span></li>
+        </ul>
+      </div>
+
+      <!-- Track 4 -->
+      <div class="track" id="track-cloud">
+        <div class="track-header">
+          <span class="track-icon">☁️</span>
+          <div>
+            <h2>4. Cloud &amp; Infrastructure</h2>
+            <p>AWS/GCP/Azure, Docker, Kubernetes.</p>
+          </div>
+          <span class="badge todo">Not started</span>
+        </div>
+        <ul class="topic-list">
+          <li><a href="topics/cloud-basics.html">Cloud Basics (AWS focus)</a> <span class="tag">Beginner</span></li>
+          <li><a href="topics/docker.html">Docker</a> <span class="tag">Beginner</span></li>
+          <li><a href="topics/kubernetes.html">Kubernetes</a> <span class="tag">Intermediate</span></li>
+        </ul>
+      </div>
+
+      <!-- Track 5 -->
+      <div class="track" id="track-iac">
+        <div class="track-header">
+          <span class="track-icon">📋</span>
+          <div>
+            <h2>5. Infrastructure as Code</h2>
+            <p>Terraform, config management, reproducible infra.</p>
+          </div>
+          <span class="badge todo">Not started</span>
+        </div>
+        <ul class="topic-list">
+          <li><a href="topics/terraform.html">Terraform</a> <span class="tag">Intermediate</span></li>
+          <li><a href="topics/ansible.html">Ansible &amp; Config Management</a> <span class="tag">Intermediate</span></li>
+        </ul>
+      </div>
+
+      <!-- Track 6 -->
+      <div class="track" id="track-security">
+        <div class="track-header">
+          <span class="track-icon">🔐</span>
+          <div>
+            <h2>6. Quality, Security &amp; Observability</h2>
+            <p>DevSecOps, monitoring, logging, alerting.</p>
+          </div>
+          <span class="badge todo">Not started</span>
+        </div>
+        <ul class="topic-list">
+          <li><a href="topics/devsecops.html">DevSecOps Basics</a> <span class="tag">Intermediate</span></li>
+          <li><a href="topics/monitoring.html">Monitoring &amp; Logging</a> <span class="tag">Intermediate</span></li>
+          <li><a href="topics/sonarqube.html">SonarQube &amp; SAST/DAST</a> <span class="tag">Advanced</span></li>
+        </ul>
+      </div>
+
+      <!-- Track 7 -->
+      <div class="track" id="track-pipelines">
+        <div class="track-header">
+          <span class="track-icon">🔧</span>
+          <div>
+            <h2>7. Pipeline Design &amp; Optimization</h2>
+            <p>Modular pipelines, caching, health metrics.</p>
+          </div>
+          <span class="badge todo">Not started</span>
+        </div>
+        <ul class="topic-list">
+          <li><a href="topics/pipeline-design.html">Modular Pipeline Design</a> <span class="tag">Advanced</span></li>
+          <li><a href="topics/pipeline-perf.html">Performance &amp; Caching</a> <span class="tag">Advanced</span></li>
+        </ul>
+      </div>
+
+      <!-- Track 8 — AI -->
+      <div class="track" id="track-ai">
+        <div class="track-header">
+          <span class="track-icon">🤖</span>
+          <div>
+            <h2>8. AI &amp; The Tech World</h2>
+            <p>LLMs, building with Claude, MCP, Claude Code.</p>
+          </div>
+          <span class="badge todo">Not started</span>
+        </div>
+        <ul class="topic-list">
+          <li><a href="topics/ai-claude.html">AI Basics, Claude API &amp; MCP</a> <span class="tag">Beginner→Adv</span></li>
+          <li><a href="topics/ai-in-devops.html">AI in DevOps &amp; Automation</a> <span class="tag">Intermediate</span></li>
+          <li><a href="topics/ai-industry.html">Industry Trends &amp; Players</a> <span class="tag">Beginner</span></li>
+        </ul>
+      </div>
+
+    </section>
+  </main>
+
+  <footer>
+    <p>Built to learn. One topic at a time.</p>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script src="js/news.js"></script>
+</body>
+</html>

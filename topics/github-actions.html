@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GitHub Actions Deep Dive — Upskill</title>
+  <link rel="stylesheet" href="../css/style.css" />
+  <style>
+    .mark-done-bar { position: sticky; top: 0; background: var(--bg); border-bottom: 1px solid var(--border); padding: 0.75rem 1.5rem; display: flex; align-items: center; justify-content: space-between; z-index: 10; }
+    .mark-done-bar a { color: var(--accent2); text-decoration: none; font-size: 0.85rem; }
+    #mark-done-btn { background: var(--accent); color: #fff; border: none; padding: 0.5rem 1.25rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 600; }
+    #mark-done-btn:hover:not(:disabled) { background: #4f46e5; }
+    .concept-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 1rem; margin-top: 0.75rem; }
+    .concept-card { background: #12141e; border: 1px solid var(--border); border-radius: 8px; padding: 1rem; }
+    .concept-card h4 { font-size: 0.88rem; color: var(--accent2); margin-bottom: 0.4rem; }
+    .concept-card p { font-size: 0.82rem; color: var(--muted); }
+    .project-step { display: flex; gap: 1rem; margin-bottom: 1.25rem; }
+    .step-num { background: var(--accent); color: #fff; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; flex-shrink: 0; margin-top: 0.1rem; }
+    .quiz-q { margin-bottom: 1rem; }
+    .quiz-q p { font-size: 0.9rem; margin-bottom: 0.5rem; }
+    .quiz-q details summary { cursor: pointer; color: var(--accent2); font-size: 0.85rem; }
+    .quiz-q details p { margin-top: 0.5rem; font-size: 0.85rem; color: var(--muted); }
+    .resource-row { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 0; border-bottom: 1px solid var(--border); }
+    .resource-row:last-child { border-bottom: none; }
+    .resource-type { font-size: 0.7rem; padding: 0.18rem 0.5rem; border-radius: 4px; font-weight: 600; flex-shrink: 0; }
+    .rt-free { background: #1a2e1a; color: var(--green); }
+    .rt-video { background: #1a1a2e; color: var(--accent2); }
+    .rt-docs { background: #1f1a2e; color: #a78bfa; }
+    .rt-practice { background: #2a1f00; color: var(--yellow); }
+    .yaml-label { font-size: 0.72rem; color: var(--muted); margin-bottom: 0.25rem; }
+    .tip-box { background: #12201a; border: 1px solid #22c55e33; border-radius: 8px; padding: 0.9rem 1rem; margin: 0.75rem 0; font-size: 0.85rem; color: var(--text); }
+    .tip-box strong { color: var(--green); }
+    .warn-box { background: #1f1500; border: 1px solid #eab30833; border-radius: 8px; padding: 0.9rem 1rem; margin: 0.75rem 0; font-size: 0.85rem; color: var(--text); }
+    .warn-box strong { color: var(--yellow); }
+    .cmd-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .cmd-table th { text-align: left; color: var(--muted); font-size: 0.75rem; text-transform: uppercase; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--border); }
+    .cmd-table td { padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+    .cmd-table tr:last-child td { border-bottom: none; }
+  </style>
+</head>
+<body>
+
+  <div class="mark-done-bar">
+    <a href="../index.html">← Back to Dashboard</a>
+    <button id="mark-done-btn" data-key="topics/github-actions.html">Mark as Done</button>
+  </div>
+
+  <div class="topic-page">
+    <div class="breadcrumb">
+      <a href="../index.html">Dashboard</a> / Track 2: CI / GitHub Actions
+    </div>
+
+    <h1 class="topic-title">GitHub Actions Deep Dive</h1>
+    <p class="topic-meta">Level: Intermediate → Advanced &nbsp;·&nbsp; Estimated: 3–5 days &nbsp;·&nbsp; Focus: real workflows, not toy examples</p>
+
+    <!-- ARCHITECTURE -->
+    <div class="section">
+      <h3>How GitHub Actions Works</h3>
+      <p>GitHub Actions is an <strong>event-driven CI/CD platform</strong> built into GitHub. The execution model:</p>
+      <br/>
+      <div class="concept-grid">
+        <div class="concept-card">
+          <h4>Events</h4>
+          <p>Triggers that start a workflow. <code>push</code>, <code>pull_request</code>, <code>schedule</code>, <code>workflow_dispatch</code> (manual), <code>workflow_call</code> (reusable), <code>repository_dispatch</code> (API-triggered), release events.</p>
+        </div>
+        <div class="concept-card">
+          <h4>Workflows</h4>
+          <p>YAML files in <code>.github/workflows/</code>. One file = one workflow. Multiple workflows can run in parallel. They don't share state — each gets a fresh runner.</p>
+        </div>
+        <div class="concept-card">
+          <h4>Jobs</h4>
+          <p>Units of work within a workflow. Run in parallel by default. Use <code>needs:</code> to chain them. Each job gets a fresh runner VM (or container).</p>
+        </div>
+        <div class="concept-card">
+          <h4>Steps</h4>
+          <p>Sequential commands within a job. Share the same runner filesystem and environment. Can be shell commands (<code>run:</code>) or reusable Actions (<code>uses:</code>).</p>
+        </div>
+        <div class="concept-card">
+          <h4>Runners</h4>
+          <p>VMs that execute jobs. GitHub-hosted: ubuntu-latest, windows-latest, macos-latest. Self-hosted: your own machines/containers — needed for private network access, custom tooling, cost control.</p>
+        </div>
+        <div class="concept-card">
+          <h4>Actions</h4>
+          <p>Reusable building blocks published to the Marketplace or your org. Defined as Docker container, JS, or composite. Pin by full SHA for security.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- WORKFLOW ANATOMY -->
+    <div class="section">
+      <h3>Workflow YAML — Full Anatomy</h3>
+      <p class="yaml-label">Every key explained:</p>
+      <pre><code>name: CI Pipeline                        # Display name in GitHub UI
+
+on:                                      # Events that trigger this workflow
+  push:
+    branches: [main, 'release/**']       # Only on these branches
+    paths-ignore: ['**.md', 'docs/**']   # Skip if only docs changed
+  pull_request:
+    types: [opened, synchronize]         # PR events to react to
+  schedule:
+    - cron: '0 6 * * 1'                  # Every Monday 6am UTC
+  workflow_dispatch:                     # Allow manual trigger from UI
+    inputs:
+      environment:
+        description: 'Deploy target'
+        required: true
+        default: 'staging'
+
+env:                                     # Workflow-level env vars (all jobs)
+  NODE_VERSION: '20'
+  REGISTRY: ghcr.io
+
+jobs:
+  test:                                  # Job ID (used in needs:)
+    name: Run Tests                      # Display name
+    runs-on: ubuntu-latest               # Runner type
+    timeout-minutes: 15                  # Kill job if it hangs
+
+    strategy:                            # Matrix: run job N times with different vars
+      fail-fast: false                   # Don't cancel siblings if one fails
+      matrix:
+        node: [18, 20]
+        os: [ubuntu-latest, windows-latest]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4        # Always pin major version at minimum
+        with:
+          fetch-depth: 0                 # Full history (needed for git-based versioning)
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: 'npm'                   # Built-in cache for package managers
+
+      - name: Install dependencies
+        run: npm ci                      # ci = clean install (uses lockfile exactly)
+
+      - name: Run tests
+        run: npm test
+        env:
+          DATABASE_URL: ${{ secrets.TEST_DB_URL }}   # Inject secret as env var
+
+      - name: Upload coverage
+        if: always()                     # Run even if tests fail
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.node }}
+          path: coverage/
+
+  build:
+    name: Build & Push Image
+    runs-on: ubuntu-latest
+    needs: test                          # Only run if 'test' job succeeds
+    if: github.ref == 'refs/heads/main'  # Conditional: only on main branch
+    permissions:
+      contents: read
+      packages: write                    # Need this to push to GHCR
+
+    outputs:                             # Pass data to downstream jobs
+      image-tag: ${{ steps.meta.outputs.tags }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/myorg/myapp
+          tags: |
+            type=sha
+            type=semver,pattern={{version}}
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}    # Auto-provided token
+
+      - uses: docker/build-push-action@v5
+        with:
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          cache-from: type=gha          # GitHub Actions cache for Docker layers
+          cache-to: type=gha,mode=max
+
+  deploy:
+    name: Deploy to Staging
+    needs: build
+    runs-on: ubuntu-latest
+    environment:                        # GitHub Environment (requires approval if configured)
+      name: staging
+      url: https://staging.example.com
+    steps:
+      - name: Deploy
+        run: |
+          echo "Deploying ${{ needs.build.outputs.image-tag }}"
+          # kubectl set image deployment/app app=${{ needs.build.outputs.image-tag }}</code></pre>
+    </div>
+
+    <!-- CONTEXTS & EXPRESSIONS -->
+    <div class="section">
+      <h3>Contexts, Expressions &amp; Conditionals</h3>
+      <div class="concept-grid">
+        <div class="concept-card">
+          <h4>github context</h4>
+          <p><code>github.ref</code> — current branch/tag ref<br/><code>github.sha</code> — commit SHA<br/><code>github.actor</code> — user who triggered<br/><code>github.event_name</code> — push/pr/etc<br/><code>github.repository</code> — org/repo</p>
+        </div>
+        <div class="concept-card">
+          <h4>secrets context</h4>
+          <p><code>secrets.MY_SECRET</code> — never logged, masked in output. Set in repo Settings → Secrets. Environment secrets override repo secrets. Use <code>GITHUB_TOKEN</code> (auto-provided) for repo access.</p>
+        </div>
+        <div class="concept-card">
+          <h4>env context</h4>
+          <p>Access env vars: <code>env.MY_VAR</code>. Set at workflow, job, or step level. Step-level overrides job-level overrides workflow-level.</p>
+        </div>
+        <div class="concept-card">
+          <h4>Conditional expressions</h4>
+          <p><code>if: github.ref == 'refs/heads/main'</code><br/><code>if: failure()</code> — run if previous step failed<br/><code>if: always()</code> — run regardless<br/><code>if: contains(github.event.head_commit.message, '[skip ci]')</code></p>
+        </div>
+        <div class="concept-card">
+          <h4>Step outputs</h4>
+          <p>Pass data between steps:<br/><code>echo "tag=v1.2.3" >> $GITHUB_OUTPUT</code><br/>Then access: <code>${{ steps.mystep.outputs.tag }}</code></p>
+        </div>
+        <div class="concept-card">
+          <h4>Job outputs</h4>
+          <p>Pass data between jobs:<br/>Define: <code>outputs: { key: "${{ steps.x.outputs.y }}" }</code><br/>Consume: <code>${{ needs.myjob.outputs.key }}</code></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- CACHING -->
+    <div class="section">
+      <h3>Caching — The Biggest Speed Win</h3>
+      <pre><code>- name: Cache node_modules
+  uses: actions/cache@v4
+  with:
+    path: ~/.npm                    # What to cache
+    key: npm-${{ hashFiles('package-lock.json') }}   # Cache key
+    restore-keys: |                 # Fallback keys (partial match)
+      npm-</code></pre>
+      <br/>
+      <div class="tip-box"><strong>How caching works:</strong> On cache hit, restore contents before the step. On cache miss, run normally, then save at end of job. Key must change when deps change — hash the lockfile. Cache is per-branch then falls back to default branch.</div>
+      <div class="warn-box"><strong>Cache pitfalls:</strong> Max 10GB per repo. Caches expire after 7 days of no access. Don't cache build outputs (they have side effects) — only cache dependencies. Use <code>restore-keys</code> as a fallback when the exact key misses.</div>
+    </div>
+
+    <!-- REUSABLE WORKFLOWS -->
+    <div class="section">
+      <h3>Reusable Workflows — DRY Pipelines</h3>
+      <p>Define once, call from any repo. Critical for large orgs with many services sharing the same pipeline.</p>
+      <pre><code># .github/workflows/reusable-build.yml  (in a shared repo)
+on:
+  workflow_call:                    # Makes this callable
+    inputs:
+      image-name:
+        required: true
+        type: string
+    secrets:
+      REGISTRY_TOKEN:
+        required: true
+    outputs:
+      image-tag:
+        value: ${{ jobs.build.outputs.tag }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.meta.outputs.tags }}
+    steps:
+      # ... build steps using ${{ inputs.image-name }}</code></pre>
+
+      <pre><code># In your service repo — call the shared workflow
+jobs:
+  build:
+    uses: myorg/shared-workflows/.github/workflows/reusable-build.yml@main
+    with:
+      image-name: my-service
+    secrets:
+      REGISTRY_TOKEN: ${{ secrets.REGISTRY_TOKEN }}</code></pre>
+    </div>
+
+    <!-- SECRETS MANAGEMENT -->
+    <div class="section">
+      <h3>Secrets &amp; Security Best Practices</h3>
+      <table class="cmd-table">
+        <thead><tr><th>Topic</th><th>Best Practice</th></tr></thead>
+        <tbody>
+          <tr><td>Pinning Actions</td><td>Use full SHA: <code>actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683</code> — protects against tag mutation attacks. Use Dependabot to auto-update.</td></tr>
+          <tr><td>GITHUB_TOKEN permissions</td><td>Minimize: set <code>permissions: contents: read</code> at top level, only add what each job needs.</td></tr>
+          <tr><td>Third-party Actions</td><td>Only use Actions from verified publishers or pin to SHA. <code>uses: some-random/action@main</code> is dangerous.</td></tr>
+          <tr><td>Secrets in logs</td><td>Never <code>echo ${{ secrets.FOO }}</code> — it gets masked but it's still bad practice. Pass via env vars, not inline.</td></tr>
+          <tr><td>Environment secrets</td><td>Use Environments for production secrets + required reviewers. This adds a manual approval gate before deploy jobs.</td></tr>
+          <tr><td>OIDC / Keyless Auth</td><td>Use OIDC to authenticate to cloud providers without storing long-lived credentials. AWS, GCP, Azure all support it.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- REAL PROJECT -->
+    <div class="section">
+      <h3>Hands-On Project: Build a Real CI/CD Pipeline</h3>
+      <p style="margin-bottom:1rem; color: var(--muted);">Create a GitHub repo with a Node.js app and build a complete pipeline.</p>
+
+      <div class="project-step">
+        <div class="step-num">1</div>
+        <div>
+          <strong>Create the repo and app</strong>
+          <pre><code>mkdir gh-actions-lab && cd gh-actions-lab
+git init && git branch -M main
+
+# Simple Express app
+npm init -y
+npm install express
+npm install --save-dev jest supertest
+
+cat > index.js << 'EOF'
+const express = require('express');
+const app = express();
+app.get('/health', (req, res) => res.json({ status: 'ok' }));
+app.get('/hello', (req, res) => res.json({ message: 'Hello World' }));
+module.exports = app;
+EOF
+
+cat > server.js << 'EOF'
+const app = require('./index');
+app.listen(3000, () => console.log('Server on port 3000'));
+EOF
+
+cat > index.test.js << 'EOF'
+const request = require('supertest');
+const app = require('./index');
+test('health check returns 200', async () => {
+  const res = await request(app).get('/health');
+  expect(res.status).toBe(200);
+  expect(res.body.status).toBe('ok');
+});
+EOF
+
+# Add test script to package.json
+npm pkg set scripts.test="jest"</code></pre>
+        </div>
+      </div>
+
+      <div class="project-step">
+        <div class="step-num">2</div>
+        <div>
+          <strong>Create the CI workflow</strong>
+          <pre><code>mkdir -p .github/workflows
+
+cat > .github/workflows/ci.yml << 'EOF'
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18, 20]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+      - run: npm ci
+      - run: npm test
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-node${{ matrix.node-version }}
+          path: coverage/
+EOF</code></pre>
+        </div>
+      </div>
+
+      <div class="project-step">
+        <div class="step-num">3</div>
+        <div>
+          <strong>Add a linting job that runs in parallel</strong>
+          <pre><code># Append to .github/workflows/ci.yml
+cat >> .github/workflows/ci.yml << 'EOF'
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - run: npm ci
+      - run: npx eslint . --ext .js || true
+EOF</code></pre>
+        </div>
+      </div>
+
+      <div class="project-step">
+        <div class="step-num">4</div>
+        <div>
+          <strong>Push to GitHub and watch it run</strong>
+          <pre><code>git add .
+git commit -m "feat: add express app and CI workflow"
+git remote add origin https://github.com/YOUR_USERNAME/gh-actions-lab.git
+git push -u origin main
+# Go to GitHub → Actions tab → watch the workflow run</code></pre>
+        </div>
+      </div>
+
+      <div class="project-step">
+        <div class="step-num">5</div>
+        <div>
+          <strong>Add a workflow_dispatch input and manual deploy job</strong>
+          <pre><code># Add to your ci.yml triggers:
+#   workflow_dispatch:
+#     inputs:
+#       environment:
+#         type: choice
+#         options: [staging, production]
+#         default: staging
+#
+# Add deploy job:
+#   deploy:
+#     needs: [test, lint]
+#     if: github.event_name == 'workflow_dispatch'
+#     runs-on: ubuntu-latest
+#     steps:
+#       - run: echo "Deploying to ${{ inputs.environment }}"
+#
+# Then go to Actions → CI → Run workflow → choose environment</code></pre>
+        </div>
+      </div>
+
+      <div class="project-step">
+        <div class="step-num">6</div>
+        <div>
+          <strong>Break a test and watch the pipeline fail</strong>
+          <pre><code># Edit index.test.js to have a failing test
+# Push the change, watch the CI fail
+# Fix it, push again — see the green checkmark
+# This is the most important muscle memory to build</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- RESOURCES -->
+    <div class="section">
+      <h3>Resources</h3>
+      <div class="resource-row">
+        <span class="resource-type rt-docs">DOCS</span>
+        <a href="https://docs.github.com/en/actions" target="_blank">GitHub Actions Official Docs</a>
+        — The best reference. Read: Workflow syntax, Contexts, Security hardening.
+      </div>
+      <div class="resource-row">
+        <span class="resource-type rt-free">FREE</span>
+        <a href="https://github.com/marketplace?type=actions" target="_blank">GitHub Actions Marketplace</a>
+        — Browse official and community actions. Filter by category.
+      </div>
+      <div class="resource-row">
+        <span class="resource-type rt-video">VIDEO</span>
+        <a href="https://www.youtube.com/watch?v=R8_veQiYBjI" target="_blank">GitHub Actions Full Tutorial — TechWorld with Nana (YouTube)</a>
+        — Great practical walkthrough.
+      </div>
+      <div class="resource-row">
+        <span class="resource-type rt-free">FREE</span>
+        <a href="https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions" target="_blank">Security Hardening for GitHub Actions</a>
+        — Official guide on pinning, OIDC, permissions.
+      </div>
+      <div class="resource-row">
+        <span class="resource-type rt-practice">PRACTICE</span>
+        <a href="https://github.com/skills/hello-github-actions" target="_blank">GitHub Skills: Hello GitHub Actions</a>
+        — Interactive course in a real repo.
+      </div>
+      <div class="resource-row">
+        <span class="resource-type rt-docs">REFERENCE</span>
+        <a href="https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions" target="_blank">Workflow Syntax Reference</a>
+        — Complete YAML key reference. Bookmark this.
+      </div>
+    </div>
+
+    <!-- QUIZ -->
+    <div class="section">
+      <h3>Check Your Understanding</h3>
+      <div class="quiz-q">
+        <p><strong>Q1.</strong> Job A takes 5min, Job B takes 3min, Job C depends on both. Total time with default settings?</p>
+        <details><summary>Show answer</summary>
+          <p>A and B run in parallel (no <code>needs</code> dependency between them). C starts after both finish. Total = max(5, 3) + C's time = 5min + C.</p>
+        </details>
+      </div>
+      <div class="quiz-q">
+        <p><strong>Q2.</strong> Your workflow fails because a secret isn't available in a fork PR. Why and how do you handle it?</p>
+        <details><summary>Show answer</summary>
+          <p>GitHub doesn't pass repository secrets to workflows triggered by PRs from forks (security measure — anyone can fork and exfiltrate secrets). Solutions: (1) Use <code>pull_request_target</code> with care (dangerous — gives access to base repo code), (2) design workflows so tests don't need secrets, (3) have maintainers trigger tests manually via <code>workflow_dispatch</code> after reviewing fork PRs.</p>
+        </details>
+      </div>
+      <div class="quiz-q">
+        <p><strong>Q3.</strong> You have 20 microservices each with the same CI pipeline. How do you avoid maintaining 20 copies of identical YAML?</p>
+        <details><summary>Show answer</summary>
+          <p>Use a <strong>reusable workflow</strong> in a shared repository. Each service calls the shared workflow with <code>uses: myorg/shared/.github/workflows/ci.yml@main</code> passing inputs like <code>service-name</code>. One change in the shared workflow propagates to all 20 services.</p>
+        </details>
+      </div>
+      <div class="quiz-q">
+        <p><strong>Q4.</strong> Why should you pin Actions to a full SHA rather than a tag like <code>@v4</code>?</p>
+        <details><summary>Show answer</summary>
+          <p>Tags are mutable — a maintainer (or attacker who compromises the maintainer's account) can move the tag to point to different, malicious code. A full SHA is immutable — it always refers to exactly the code you reviewed. Use tools like Dependabot to auto-PR SHA updates.</p>
+        </details>
+      </div>
+    </div>
+
+  </div>
+
+  <footer style="max-width:820px; margin: 2rem auto 0; padding: 1.5rem; border-top: 1px solid var(--border); text-align:center; color: var(--muted); font-size:0.82rem;">
+    <a href="../index.html" style="color: var(--accent2);">← Back to Dashboard</a>
+  </footer>
+
+  <script src="../js/main.js"></script>
+</body>
+</html>

@@ -69,42 +69,44 @@
     return items;
   }
 
-  // Shopping: r/frugalmalefashion — live clothing deals
+  // Shopping: r/frugalmalefashion via rss2json (server-side proxy, no CORS issue)
   async function fetchShopping() {
     if (cache.shopping) return cache.shopping;
-    const res = await fetch(
-      'https://www.reddit.com/r/frugalmalefashion/new.json?limit=30',
-      { headers: { 'User-Agent': 'Mozilla/5.0' } }
-    );
-    if (!res.ok) throw new Error('Reddit ' + res.status);
+    const rss = encodeURIComponent('https://www.reddit.com/r/frugalmalefashion/.rss');
+    const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${rss}`);
+    if (!res.ok) throw new Error('rss2json ' + res.status);
     const data = await res.json();
-    const posts = data.data?.children || [];
+    if (data.status !== 'ok') throw new Error('Feed error: ' + (data.message || 'unknown'));
 
-    const DEAL_FLAIRS = ['deal/sale', 'deal', 'sale', 'ymmv', 'promo code', 'online deal'];
+    const SKIP = ['weekly', 'buy/sell/trade', 'b/s/t', 'recommendations', 'simple questions', 'discord'];
 
-    const items = posts
-      .map(p => p.data)
+    const items = (data.items || [])
       .filter(p => {
-        const flair = (p.link_flair_text || '').toLowerCase();
-        // include if flair is deal/sale or has no flair (we'll still show)
-        return !flair.includes('expired') && !flair.includes('oos')
-          && !flair.includes('weekly') && !flair.includes('recommendation');
+        const t = p.title.toLowerCase();
+        return !SKIP.some(s => t.includes(s));
       })
       .map(p => ({
-        title: p.title,
-        url: p.url || `https://reddit.com${p.permalink}`,
-        redditUrl: `https://reddit.com${p.permalink}`,
-        flair: p.link_flair_text || 'Deal',
-        points: p.score,
-        comments: p.num_comments,
-        time: p.created_utc,
-        image: p.thumbnail && !['self','default','nsfw','spoiler'].includes(p.thumbnail)
-          ? p.thumbnail : null,
-      }))
-      .slice(0, 20);
+        title: p.title.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>'),
+        url: p.link,
+        redditUrl: p.link,
+        flair: detectFlair(p.title),
+        points: null,
+        comments: null,
+        time: p.pubDate,
+        image: null,
+      }));
 
     cache.shopping = items;
     return items;
+  }
+
+  function detectFlair(title) {
+    const t = title.toLowerCase();
+    if (t.includes('ymmv')) return 'YMMV';
+    if (t.includes('expired') || t.includes('oos')) return 'Expired';
+    if (t.includes('%') || t.includes('off') || t.includes('sale') || t.includes('$')) return 'Deal/Sale';
+    if (t.includes('code') || t.includes('promo') || t.includes('coupon')) return 'Promo Code';
+    return 'Deal';
   }
 
   const FETCHERS = { devto: fetchDevTo, hn: fetchHN, shopping: fetchShopping };

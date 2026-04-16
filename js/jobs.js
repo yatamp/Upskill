@@ -40,17 +40,23 @@
   };
 
   // ── US accessibility check ─────────────────────────────────
+  // Accept: empty (worldwide), explicit US cities/states, "remote", "global", "anywhere", North America
+  // Reject: specific non-US cities/countries with no US mention
   function isUsAccessible(loc) {
-    if (!loc || loc.trim() === '') return true; // worldwide = open to US
+    if (!loc || loc.trim() === '') return true; // empty = worldwide
     const l = loc.toLowerCase();
-    const BLOCK = [
-      'europe only', 'eu only', 'uk only', 'emea only',
-      'latin america only', 'latam only', 'india only', 'asia only',
-      'brazil', 'remoto', 'são paulo', 'berlin', 'london', 'paris',
-      'cape town', 'nigeria', 'africa',
+
+    // Must contain one of these to be considered US-accessible
+    const ALLOW = [
+      'remote', 'global', 'worldwide', 'anywhere', 'distributed', 'international',
+      'united states', 'usa', 'u.s.', 'america', 'north america',
+      'canada', 'ontario', 'quebec',
+      // US cities / states RemoteOK uses
+      'new york', ' ny', 'san francisco', 'austin', 'chicago', 'seattle',
+      'boston', 'denver', 'los angeles', 'atlanta', 'dallas', 'miami',
+      'reston', 'rockville', 'chantilly', 'salt lake', 'redwood',
     ];
-    if (BLOCK.some(s => l.includes(s))) return false;
-    return true; // everything else (USA, Americas, Worldwide, Remote, etc.)
+    return ALLOW.some(s => l.includes(s));
   }
 
   // ── Match score ────────────────────────────────────────────

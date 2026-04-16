@@ -1,95 +1,165 @@
 // ── Live Jobs Feed ───────────────────────────────────────────
-// Tech: Remotive API (free, CORS-friendly) — filtered to US + profile match
-// Modeling: Casting Call Club RSS via rss2json
+// Primary: RemoteOK API (free, CORS-friendly, has real jobs)
+// Fallback: Remotive API (category-based, also free)
+// Modeling: Casting Call Club RSS via rss2json.com
 
 (function () {
   'use strict';
 
   let currentType = 'tech';
-  let currentTechParam = 'search=platform+engineer+golang';
+  let currentTag = 'devops';
   let cache = {};
 
-  // Profile skills for match scoring
-  const PROFILE_SKILLS = [
+  // Profile keywords for match scoring
+  const PROFILE = [
     'go', 'golang', 'kubernetes', 'k8s', 'kafka', 'terraform', 'docker',
-    'prometheus', 'grafana', 'datadog', 'grpc', 'redis', 'python',
-    'aws', 'ci/cd', 'devops', 'platform', 'sre', 'helm', 'github actions',
-    'postgresql', 'linux', 'microservices', 'observability'
+    'prometheus', 'grafana', 'datadog', 'grpc', 'redis', 'python', 'aws',
+    'platform', 'devops', 'sre', 'reliability', 'helm', 'github actions',
+    'microservices', 'observability', 'backend', 'distributed', 'cloud',
+    'linux', 'ci/cd', 'pipeline', 'infrastructure'
   ];
 
-  // US-based location strings accepted
-  const US_LOCATIONS = [
-    'united states', 'usa', 'us only', 'u.s.', 'us,', 'us ',
-    'north america', 'worldwide', 'anywhere', 'global', ''
-  ];
+  // RemoteOK tags → filter chips
+  const TAG_MAP = {
+    devops:   'devops',
+    golang:   'golang',
+    kubernetes: 'kubernetes',
+    platform: 'devops',  // RemoteOK doesn't have "platform" tag, use devops
+    kafka:    'kafka',
+    sre:      'sre',
+  };
 
-  function isUSJob(loc) {
-    if (!loc) return true; // no restriction = worldwide
+  // Remotive category fallback
+  const REMOTIVE_CAT = {
+    devops:     'devops-sysadmin',
+    golang:     'software-dev',
+    kubernetes: 'devops-sysadmin',
+    platform:   'devops-sysadmin',
+    kafka:      'devops-sysadmin',
+    sre:        'devops-sysadmin',
+  };
+
+  // ── US accessibility check ─────────────────────────────────
+  function isUsAccessible(loc) {
+    if (!loc || loc.trim() === '') return true; // worldwide = open to US
     const l = loc.toLowerCase();
-    return US_LOCATIONS.some(s => l.includes(s));
+    const BLOCK = [
+      'europe only', 'eu only', 'uk only', 'emea only',
+      'latin america only', 'latam only', 'india only', 'asia only',
+      'brazil', 'remoto', 'são paulo', 'berlin', 'london', 'paris',
+      'cape town', 'nigeria', 'africa',
+    ];
+    if (BLOCK.some(s => l.includes(s))) return false;
+    return true; // everything else (USA, Americas, Worldwide, Remote, etc.)
   }
 
-  function profileScore(job) {
-    const haystack = [
-      job.title, job.description,
-      (job.tags || []).join(' '), job.job_type
-    ].join(' ').toLowerCase();
-    return PROFILE_SKILLS.filter(s => haystack.includes(s)).length;
+  // ── Match score ────────────────────────────────────────────
+  function scoreJob(title, desc, tags) {
+    const hay = [title, desc, (tags || []).join(' ')].join(' ').toLowerCase();
+    return PROFILE.filter(k => hay.includes(k)).length;
   }
 
-  // ── Fetch helpers ──────────────────────────────────────────
-
-  async function fetchTechJobs(param) {
-    const key = 'tech_' + param;
+  // ── Fetch: RemoteOK ────────────────────────────────────────
+  async function fetchRemoteOK(tag) {
+    const key = 'rok_' + tag;
     if (cache[key]) return cache[key];
 
-    const res = await fetch(`https://remotive.com/api/remote-jobs?${param}`);
-    if (!res.ok) throw new Error(`Remotive ${res.status}`);
+    const res = await fetch(`https://remoteok.com/api?tag=${tag}`, {
+      headers: { 'User-Agent': 'Mozilla/5.0' }
+    });
+    if (!res.ok) throw new Error('RemoteOK ' + res.status);
+    const data = await res.json();
+
+    const jobs = data
+      .filter(j => j && j.position && j.company) // skip metadata object
+      .filter(j => isUsAccessible(j.location))
+      .map(j => ({
+        title: j.position,
+        company: j.company,
+        logo: j.company_logo || j.logo || null,
+        url: j.apply_url || j.url || `https://remoteok.com/remote-jobs/${j.slug}`,
+        location: j.location || 'Remote (Worldwide)',
+        salary: j.salary_min && j.salary_min > 0
+          ? `$${Math.round(j.salary_min / 1000)}k–$${Math.round(j.salary_max / 1000)}k`
+          : '',
+        tags: (j.tags || []).slice(0, 5),
+        date: j.date || j.epoch ? new Date((j.epoch || 0) * 1000).toISOString() : null,
+        score: scoreJob(j.position, j.description || '', j.tags),
+        source: 'RemoteOK',
+      }))
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 15);
+
+    if (!jobs.length) throw new Error('no results');
+    cache[key] = jobs;
+    return jobs;
+  }
+
+  // ── Fetch: Remotive fallback ───────────────────────────────
+  async function fetchRemotive(tag) {
+    const cat = REMOTIVE_CAT[tag] || 'devops-sysadmin';
+    const key = 'rem_' + cat;
+    if (cache[key]) return cache[key];
+
+    const res = await fetch(`https://remotive.com/api/remote-jobs?category=${cat}&limit=30`);
+    if (!res.ok) throw new Error('Remotive ' + res.status);
     const data = await res.json();
 
     const jobs = (data.jobs || [])
-      .filter(j => isUSJob(j.candidate_required_location))
-      .map(j => ({ ...j, _score: profileScore(j) }))
-      .sort((a, b) => b._score - a._score)
-      .slice(0, 12);
+      .filter(j => isUsAccessible(j.candidate_required_location))
+      .map(j => ({
+        title: j.title,
+        company: j.company_name,
+        logo: j.company_logo_url || j.company_logo || null,
+        url: j.url,
+        location: j.candidate_required_location || 'Remote',
+        salary: j.salary ? j.salary.replace(/<[^>]+>/g, '').slice(0, 60) : '',
+        tags: (j.tags || []).slice(0, 5),
+        date: j.publication_date || null,
+        score: scoreJob(j.title, j.description || '', j.tags),
+        source: 'Remotive',
+      }))
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 15);
 
     cache[key] = jobs;
     return jobs;
   }
 
-  async function fetchModelingJobs() {
+  // ── Fetch: Modeling (Casting Call Club RSS) ────────────────
+  async function fetchModeling() {
     if (cache.modeling) return cache.modeling;
 
     try {
       const rssUrl = encodeURIComponent('https://www.castingcallclub.com/rss/jobs/casting-calls');
       const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${rssUrl}&count=15`);
-      const data = await res.json();
-      if (data.status === 'ok' && data.items?.length > 0) {
-        cache.modeling = data.items;
-        return cache.modeling;
+      const d = await res.json();
+      if (d.status === 'ok' && d.items?.length) {
+        cache.modeling = d.items;
+        return d.items;
       }
     } catch (_) {}
 
-    // Fallback: Indeed RSS for brand/model casting in USA
+    // Fallback: Indeed RSS
     try {
       const rssUrl = encodeURIComponent(
-        'https://www.indeed.com/rss?q=model+casting+brand+shoot+south+asian&l=United+States&sort=date'
+        'https://www.indeed.com/rss?q=model+casting+brand+shoot&l=United+States&sort=date'
       );
       const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${rssUrl}&count=15`);
-      const data = await res.json();
-      cache.modeling = data.items || [];
+      const d = await res.json();
+      cache.modeling = d.items || [];
       return cache.modeling;
     } catch (_) {}
 
     cache.modeling = [];
-    return cache.modeling;
+    return [];
   }
 
-  // ── Render helpers ─────────────────────────────────────────
-
-  function timeAgo(dateStr) {
-    if (!dateStr) return '';
-    const diff = Date.now() - new Date(dateStr).getTime();
+  // ── Helpers ────────────────────────────────────────────────
+  function timeAgo(val) {
+    if (!val) return '';
+    const ts = typeof val === 'number' ? val * 1000 : new Date(val).getTime();
+    const diff = Date.now() - ts;
     const h = Math.floor(diff / 3600000);
     const d = Math.floor(h / 24);
     if (h < 1) return 'just now';
@@ -98,129 +168,135 @@
     return `${Math.floor(d / 30)}mo ago`;
   }
 
-  function stripHtml(html) {
-    const div = document.createElement('div');
-    div.innerHTML = html;
-    return (div.textContent || div.innerText || '').trim();
+  function stripHtml(s) {
+    const d = document.createElement('div');
+    d.innerHTML = s;
+    return (d.textContent || d.innerText || '').trim();
   }
 
-  function matchBadge(score) {
-    if (score >= 6) return `<span class="match-badge match-hot">Strong match</span>`;
-    if (score >= 3) return `<span class="match-badge match-good">Good match</span>`;
-    return '';
-  }
-
+  // ── Render: Tech jobs ──────────────────────────────────────
   function renderTechJobs(jobs) {
     const grid = document.getElementById('tech-jobs-grid');
     if (!jobs.length) {
-      grid.innerHTML = '<div class="jobs-empty">No US remote jobs found for this filter right now — try another tab.</div>';
+      grid.innerHTML = '<div class="jobs-empty-v2">No US remote jobs found right now — try a different filter or refresh.</div>';
       return;
     }
     grid.innerHTML = jobs.map(j => {
-      const logo = j.company_logo
-        ? `<img class="job-logo" src="${j.company_logo}" alt="${j.company_name}" loading="lazy" onerror="this.style.display='none'">`
+      const badge = j.score >= 6
+        ? '<span class="match-strong">Strong match</span>'
+        : j.score >= 3 ? '<span class="match-good">Good match</span>' : '';
+      const tags = j.tags.map(t => `<span class="jc-tag">${t}</span>`).join('');
+      const logo = j.logo
+        ? `<img class="jc-logo" src="${j.logo}" alt="" loading="lazy" onerror="this.style.display='none'">`
         : '';
-      const tags = (j.tags || []).slice(0, 4).map(t => `<span class="job-tag">${t}</span>`).join('');
-      const salary = j.salary ? `<span class="job-salary">${stripHtml(j.salary).slice(0, 60)}</span>` : '';
-      const location = j.candidate_required_location || 'Remote (Worldwide)';
       return `
-        <div class="job-card">
-          <div class="job-top">
+        <div class="job-card-v2">
+          <div class="jc-top">
             ${logo}
             <div style="flex:1;min-width:0">
-              <a class="job-title" href="${j.url}" target="_blank" rel="noopener noreferrer">${j.title}</a>
-              <div class="job-company">${j.company_name} ${matchBadge(j._score)}</div>
+              <a class="jc-title" href="${j.url}" target="_blank" rel="noopener noreferrer">${j.title}</a>
+              <div class="jc-company">${j.company}${badge}</div>
             </div>
           </div>
-          <div class="job-meta">
-            <span class="job-location">${location}</span>
-            ${salary}
-            <span class="job-date">${timeAgo(j.publication_date)}</span>
+          <div class="jc-meta">
+            <span class="jc-loc">${j.location}</span>
+            ${j.salary ? `<span class="jc-salary">${j.salary}</span>` : ''}
+            <span class="jc-age">${timeAgo(j.date)}</span>
           </div>
-          ${tags ? `<div class="job-tags">${tags}</div>` : ''}
+          ${tags ? `<div class="jc-tags">${tags}</div>` : ''}
         </div>`;
     }).join('');
   }
 
-  function renderModelingJobs(items) {
+  // ── Render: Modeling ───────────────────────────────────────
+  function renderModeling(items) {
     const grid = document.getElementById('modeling-jobs-grid');
     if (!items.length) {
-      grid.innerHTML = '<div class="jobs-empty">No casting calls loaded right now — use the platform links above for live listings.</div>';
+      grid.innerHTML = '<div class="jobs-empty-v2">No casting calls loaded right now — use the platform links above for live listings.</div>';
       return;
     }
     grid.innerHTML = items.map(item => {
       const desc = stripHtml(item.description || item.content || '').slice(0, 140);
       return `
-        <div class="job-card">
-          <a class="job-title" href="${item.link}" target="_blank" rel="noopener noreferrer">${item.title}</a>
-          <div class="job-company">${item.author || 'Casting Call'}</div>
-          <div class="job-meta">
-            <span class="job-date">${timeAgo(item.pubDate)}</span>
+        <div class="job-card-v2">
+          <a class="jc-title" href="${item.link}" target="_blank" rel="noopener noreferrer">${item.title}</a>
+          <div class="jc-company">${item.author || 'Casting Call'}</div>
+          <div class="jc-meta">
+            <span class="jc-age">${timeAgo(item.pubDate)}</span>
           </div>
-          ${desc ? `<p class="job-desc">${desc}…</p>` : ''}
+          ${desc ? `<p style="font-size:0.75rem;color:var(--muted);line-height:1.5;margin:0">${desc}…</p>` : ''}
         </div>`;
     }).join('');
   }
 
-  // ── Load functions ─────────────────────────────────────────
-
+  // ── Load ───────────────────────────────────────────────────
   async function loadTechJobs() {
     const grid = document.getElementById('tech-jobs-grid');
-    grid.innerHTML = '<div class="jobs-loading">Fetching US remote jobs…</div>';
+    grid.innerHTML = '<div class="jobs-empty-v2" style="padding:1.5rem">Fetching US remote jobs…</div>';
+
     try {
-      const jobs = await fetchTechJobs(currentTechParam);
+      const jobs = await fetchRemoteOK(TAG_MAP[currentTag] || currentTag);
       renderTechJobs(jobs);
-    } catch (e) {
-      grid.innerHTML = `<div class="jobs-empty">Could not load jobs — ${e.message}</div>`;
+    } catch (e1) {
+      // Fallback to Remotive
+      try {
+        const jobs = await fetchRemotive(currentTag);
+        renderTechJobs(jobs);
+      } catch (e2) {
+        grid.innerHTML = `<div class="jobs-empty-v2">Could not load jobs (${e1.message}). Check your network and try refreshing.</div>`;
+      }
     }
   }
 
-  async function loadModelingJobs() {
+  async function loadModeling() {
     const grid = document.getElementById('modeling-jobs-grid');
-    grid.innerHTML = '<div class="jobs-loading">Fetching casting calls…</div>';
+    grid.innerHTML = '<div class="jobs-empty-v2" style="padding:1.5rem">Fetching casting calls…</div>';
     try {
-      const items = await fetchModelingJobs();
-      renderModelingJobs(items);
-    } catch (e) {
-      grid.innerHTML = '<div class="jobs-empty">Could not load casting calls right now.</div>';
+      const items = await fetchModeling();
+      renderModeling(items);
+    } catch (_) {
+      grid.innerHTML = '<div class="jobs-empty-v2">Could not load casting calls.</div>';
     }
   }
 
   function switchType(type) {
     currentType = type;
-    document.querySelectorAll('.jobs-type-tab').forEach(t =>
+    document.querySelectorAll('.jobs-type-tab-v2').forEach(t =>
       t.classList.toggle('active', t.dataset.type === type)
     );
     document.getElementById('jobs-panel-tech').style.display = type === 'tech' ? '' : 'none';
     document.getElementById('jobs-panel-modeling').style.display = type === 'modeling' ? '' : 'none';
     if (type === 'tech') loadTechJobs();
-    else loadModelingJobs();
+    else loadModeling();
   }
 
   // ── Init ───────────────────────────────────────────────────
-
   function initJobs() {
     if (!document.getElementById('tech-jobs-grid')) return;
 
-    document.querySelectorAll('.jobs-type-tab').forEach(tab =>
+    document.querySelectorAll('.jobs-type-tab-v2').forEach(tab =>
       tab.addEventListener('click', () => switchType(tab.dataset.type))
     );
 
-    document.querySelectorAll('.jobs-filter').forEach(btn => {
+    document.querySelectorAll('.jobs-chip').forEach(btn => {
       btn.addEventListener('click', () => {
-        document.querySelectorAll('.jobs-filter').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.jobs-chip').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        currentTechParam = btn.dataset.param;
-        delete cache['tech_' + currentTechParam];
+        currentTag = btn.dataset.tag;
+        delete cache['rok_' + (TAG_MAP[currentTag] || currentTag)];
+        delete cache['rem_' + (REMOTIVE_CAT[currentTag] || currentTag)];
         loadTechJobs();
       });
     });
 
-    document.getElementById('jobs-refresh-btn').addEventListener('click', () => {
-      cache = {};
-      if (currentType === 'tech') loadTechJobs();
-      else loadModelingJobs();
-    });
+    const refreshBtn = document.getElementById('jobs-refresh-btn');
+    if (refreshBtn) {
+      refreshBtn.addEventListener('click', () => {
+        cache = {};
+        if (currentType === 'tech') loadTechJobs();
+        else loadModeling();
+      });
+    }
 
     loadTechJobs();
   }

@@ -6,325 +6,276 @@
   <title>Upskill Dashboard</title>
   <link rel="stylesheet" href="css/style.css" />
   <style>
-    .news-section { max-width: 900px; margin: 0 auto 2rem; padding: 0 1.5rem; }
-    .news-section h2 { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 0.85rem; display: flex; align-items: center; gap: 0.5rem; }
-    .news-section h2 span.live-dot { width: 7px; height: 7px; background: var(--green); border-radius: 50%; display: inline-block; animation: pulse 2s infinite; }
-    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
-    .news-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0.75rem; }
-    .news-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.9rem 1rem; transition: border-color 0.2s; }
-    .news-card:hover { border-color: var(--accent); }
-    .news-card a { color: var(--text); text-decoration: none; font-size: 0.85rem; font-weight: 500; line-height: 1.45; display: block; margin-bottom: 0.4rem; }
-    .news-card a:hover { color: var(--accent2); }
-    .news-meta { font-size: 0.72rem; color: var(--muted); display: flex; gap: 0.75rem; flex-wrap: wrap; }
-    .news-source { background: #1f2937; border-radius: 4px; padding: 0.1rem 0.4rem; font-size: 0.68rem; }
-    .news-loading { color: var(--muted); font-size: 0.85rem; padding: 1rem 0; text-align: center; }
-    .news-tabs { display: flex; gap: 0.5rem; margin-bottom: 0.85rem; flex-wrap: wrap; align-items: center; }
-    .news-tab { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 0.3rem 0.75rem; font-size: 0.78rem; cursor: pointer; color: var(--muted); transition: all 0.15s; }
-    .news-tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
-    .news-tab:hover:not(.active) { border-color: var(--accent); color: var(--text); }
-    .news-refresh { background: none; border: 1px solid var(--border); border-radius: 6px; padding: 0.25rem 0.65rem; font-size: 0.72rem; color: var(--muted); cursor: pointer; margin-left: auto; transition: all 0.15s; }
-    .news-refresh:hover { border-color: var(--accent2); color: var(--accent2); }
     .topic-list li.done a { text-decoration: line-through; opacity: 0.5; }
-
-    /* ── Jobs Section ── */
-    .jobs-section { max-width: 900px; margin: 0 auto 2rem; padding: 0 1.5rem; }
-    .jobs-section > h2 { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 0.85rem; display: flex; align-items: center; gap: 0.5rem; }
-    .jobs-refresh { background: none; border: 1px solid var(--border); border-radius: 6px; padding: 0.25rem 0.65rem; font-size: 0.72rem; color: var(--muted); cursor: pointer; margin-left: auto; transition: all 0.15s; }
-    .jobs-refresh:hover { border-color: var(--accent2); color: var(--accent2); }
-    .jobs-type-tabs { display: flex; gap: 0; margin-bottom: 1rem; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 3px; width: fit-content; }
-    .jobs-type-tab { background: none; border: none; border-radius: 6px; padding: 0.38rem 1.1rem; font-size: 0.82rem; cursor: pointer; color: var(--muted); transition: all 0.18s; font-weight: 500; }
-    .jobs-type-tab.active { background: var(--accent); color: #fff; box-shadow: 0 1px 6px rgba(99,102,241,0.4); }
-    .jobs-type-tab:hover:not(.active) { color: var(--text); }
-    .jobs-filter-tabs { display: flex; gap: 0.4rem; margin-bottom: 0.8rem; flex-wrap: wrap; }
-    .jobs-filter { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 0.22rem 0.75rem; font-size: 0.74rem; cursor: pointer; color: var(--muted); transition: all 0.15s; }
-    .jobs-filter.active { background: var(--accent2); border-color: var(--accent2); color: #0f1117; font-weight: 600; }
-    .jobs-filter:hover:not(.active) { border-color: var(--accent2); color: var(--text); }
-    .top-companies { display: flex; gap: 0.4rem; flex-wrap: wrap; align-items: center; margin-bottom: 0.8rem; }
-    .tc-label { font-size: 0.72rem; color: var(--muted); white-space: nowrap; }
-    .company-chip { font-size: 0.73rem; color: var(--text); text-decoration: none; padding: 0.2rem 0.65rem; border: 1px solid var(--border); border-radius: 20px; background: var(--surface); transition: all 0.15s; }
-    .company-chip:hover { border-color: var(--accent); color: var(--accent); }
-    .jobs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(265px, 1fr)); gap: 0.75rem; }
-    .job-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.9rem 1rem; transition: border-color 0.2s; display: flex; flex-direction: column; gap: 0.45rem; }
-    .job-card:hover { border-color: var(--accent); }
-    .job-top { display: flex; gap: 0.65rem; align-items: flex-start; }
-    .job-logo { width: 30px; height: 30px; border-radius: 5px; object-fit: contain; background: #fff; flex-shrink: 0; padding: 2px; }
-    .job-title { color: var(--text); text-decoration: none; font-size: 0.84rem; font-weight: 500; line-height: 1.4; display: block; }
-    .job-title:hover { color: var(--accent2); }
-    .job-company { font-size: 0.74rem; color: var(--muted); margin-top: 0.1rem; }
-    .job-meta { display: flex; gap: 0.5rem; flex-wrap: wrap; font-size: 0.7rem; color: var(--muted); }
-    .job-location { color: var(--muted); }
-    .job-salary { color: var(--green); font-weight: 600; }
-    .job-date { opacity: 0.7; }
-    .job-tags { display: flex; flex-wrap: wrap; gap: 0.3rem; }
-    .job-tag { background: #1f2937; border-radius: 3px; padding: 0.1rem 0.42rem; font-size: 0.67rem; color: var(--muted); }
-    .job-desc { font-size: 0.75rem; color: var(--muted); line-height: 1.5; margin: 0; }
-    .jobs-loading, .jobs-empty { color: var(--muted); font-size: 0.85rem; padding: 1.2rem 0; text-align: center; grid-column: 1/-1; }
-    .modeling-platforms { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; margin-bottom: 0.85rem; padding: 0.6rem 0.9rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
-    .platform-label { font-size: 0.72rem; color: var(--muted); white-space: nowrap; }
-    .platform-link { font-size: 0.75rem; color: var(--accent2); text-decoration: none; padding: 0.15rem 0.55rem; border: 1px solid var(--border); border-radius: 4px; transition: all 0.15s; }
-    .platform-link:hover { border-color: var(--accent2); background: rgba(34,211,238,0.08); }
-    .match-badge { font-size: 0.65rem; border-radius: 4px; padding: 0.08rem 0.4rem; margin-left: 0.35rem; font-weight: 600; vertical-align: middle; }
-    .match-hot { background: rgba(99,102,241,0.2); color: #a5b4fc; }
-    .match-good { background: rgba(34,211,238,0.12); color: var(--accent2); }
   </style>
 </head>
 <body>
-  <header>
-    <div class="header-inner">
-      <h1>Upskill Dashboard</h1>
-      <p class="subtitle">DevOps · Cloud · AI · Security · Observability</p>
+
+  <!-- ── STICKY NAV ── -->
+  <nav class="top-nav">
+    <div class="nav-inner">
+      <div class="nav-brand">Upskill <span>Dashboard</span></div>
+      <div class="nav-tabs">
+        <button class="nav-tab active" data-tab="news">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8M15 18h-5M10 6h8v4h-8V6Z"/></svg>
+          <span>News</span>
+        </button>
+        <button class="nav-tab" data-tab="learn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+          <span>Learn</span>
+        </button>
+        <button class="nav-tab" data-tab="jobs">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+          <span>Jobs</span>
+        </button>
+      </div>
     </div>
-  </header>
+  </nav>
 
-  <main>
-    <!-- ── LIVE TECH NEWS ── -->
-    <section class="news-section">
-      <h2>
-        <span class="live-dot"></span>
-        Live Tech News
-        <button class="news-refresh" id="news-refresh-btn">Refresh</button>
-      </h2>
-      <div class="news-tabs">
-        <button class="news-tab active" data-feed="hn">Hacker News</button>
-        <button class="news-tab" data-feed="devto">Dev.to</button>
-        <button class="news-tab" data-feed="lobsters">Lobsters</button>
+  <!-- ══════════════════════════════════════════════════
+       TAB 1: NEWS
+  ══════════════════════════════════════════════════ -->
+  <div id="tab-news" class="tab-panel active">
+    <div class="panel-inner">
+      <div class="news-toolbar">
+        <span class="live-dot-v2"></span>
+        <button class="src-tab active" data-feed="devto">Dev.to</button>
+        <button class="src-tab" data-feed="hn">Hacker News</button>
+        <button class="src-tab" data-feed="lobsters">Lobsters</button>
+        <button class="src-refresh" id="news-refresh-btn">Refresh</button>
       </div>
-      <div class="news-grid" id="news-grid">
-        <div class="news-loading">Loading latest stories...</div>
+      <div class="news-hero-wrap" id="news-hero">
+        <div style="color:var(--muted);padding:2rem;text-align:center">Loading top story…</div>
       </div>
-    </section>
+      <div class="news-grid-v2" id="news-grid">
+        <div class="news-loading-v2">Loading stories…</div>
+      </div>
+    </div>
+  </div>
 
-    <!-- ── JOBS ── -->
-    <section class="jobs-section">
-      <h2>
-        <span class="live-dot"></span>
-        Live Jobs
-        <button class="jobs-refresh" id="jobs-refresh-btn">Refresh</button>
-      </h2>
+  <!-- ══════════════════════════════════════════════════
+       TAB 2: LEARN
+  ══════════════════════════════════════════════════ -->
+  <div id="tab-learn" class="tab-panel">
+    <div class="learn-inner">
+
+      <!-- Progress -->
+      <section class="progress-bar-section">
+        <div class="progress-wrap">
+          <span>Overall Progress</span>
+          <div class="bar"><div class="bar-fill" style="width: 0%"></div></div>
+          <span class="pct">0%</span>
+        </div>
+      </section>
+
+      <section class="tracks">
+
+        <!-- Track 1 -->
+        <div class="track" id="track-core">
+          <div class="track-header">
+            <span class="track-icon">🏗️</span>
+            <div><h2>1. Core Foundations</h2><p>Git, Linux, Networking — the bedrock of everything.</p></div>
+            <span class="badge todo">Not started</span>
+          </div>
+          <ul class="topic-list">
+            <li><a href="topics/git.html">Git &amp; Branching Strategies</a> <span class="tag">Beginner</span></li>
+            <li><a href="topics/linux.html">Linux Basics</a> <span class="tag">Beginner</span></li>
+            <li><a href="topics/networking.html">Networking Basics</a> <span class="tag">Beginner</span></li>
+          </ul>
+        </div>
+
+        <!-- Track 2 -->
+        <div class="track" id="track-ci">
+          <div class="track-header">
+            <span class="track-icon">⚙️</span>
+            <div><h2>2. Continuous Integration</h2><p>Build systems, automated testing, CI tools.</p></div>
+            <span class="badge todo">Not started</span>
+          </div>
+          <ul class="topic-list">
+            <li><a href="topics/ci-concepts.html">CI Concepts</a> <span class="tag">Beginner</span></li>
+            <li><a href="topics/build-systems.html">Build Systems</a> <span class="tag">Intermediate</span></li>
+            <li><a href="topics/automated-testing.html">Automated Testing in CI</a> <span class="tag">Intermediate</span></li>
+            <li><a href="topics/github-actions.html">GitHub Actions Deep Dive</a> <span class="tag">Intermediate</span></li>
+          </ul>
+        </div>
+
+        <!-- Track 3 -->
+        <div class="track" id="track-cd">
+          <div class="track-header">
+            <span class="track-icon">🚀</span>
+            <div><h2>3. CD &amp; Deployment</h2><p>Delivery vs deployment, release strategies, rollback.</p></div>
+            <span class="badge todo">Not started</span>
+          </div>
+          <ul class="topic-list">
+            <li><a href="topics/cd-concepts.html">CD Concepts &amp; Environments</a> <span class="tag">Beginner</span></li>
+            <li><a href="topics/release-strategies.html">Blue/Green, Canary, Rolling</a> <span class="tag">Intermediate</span></li>
+            <li><a href="topics/rollback.html">Rollback &amp; Recovery</a> <span class="tag">Intermediate</span></li>
+          </ul>
+        </div>
+
+        <!-- Track 4 -->
+        <div class="track" id="track-cloud">
+          <div class="track-header">
+            <span class="track-icon">☁️</span>
+            <div><h2>4. Cloud &amp; Infrastructure</h2><p>AWS/GCP/Azure, Docker, Kubernetes.</p></div>
+            <span class="badge todo">Not started</span>
+          </div>
+          <ul class="topic-list">
+            <li><a href="topics/cloud-basics.html">Cloud Basics (AWS focus)</a> <span class="tag">Beginner</span></li>
+            <li><a href="topics/docker.html">Docker</a> <span class="tag">Beginner</span></li>
+            <li><a href="topics/kubernetes.html">Kubernetes</a> <span class="tag">Intermediate</span></li>
+          </ul>
+        </div>
+
+        <!-- Track 5 -->
+        <div class="track" id="track-iac">
+          <div class="track-header">
+            <span class="track-icon">📋</span>
+            <div><h2>5. Infrastructure as Code</h2><p>Terraform, config management, reproducible infra.</p></div>
+            <span class="badge todo">Not started</span>
+          </div>
+          <ul class="topic-list">
+            <li><a href="topics/terraform.html">Terraform</a> <span class="tag">Intermediate</span></li>
+            <li><a href="topics/ansible.html">Ansible &amp; Config Management</a> <span class="tag">Intermediate</span></li>
+          </ul>
+        </div>
+
+        <!-- Track 6 -->
+        <div class="track" id="track-security">
+          <div class="track-header">
+            <span class="track-icon">🔐</span>
+            <div><h2>6. Quality, Security &amp; Observability</h2><p>DevSecOps, monitoring, logging, alerting.</p></div>
+            <span class="badge todo">Not started</span>
+          </div>
+          <ul class="topic-list">
+            <li><a href="topics/devsecops.html">DevSecOps Basics</a> <span class="tag">Intermediate</span></li>
+            <li><a href="topics/monitoring.html">Monitoring &amp; Logging</a> <span class="tag">Intermediate</span></li>
+            <li><a href="topics/sonarqube.html">SonarQube &amp; SAST/DAST</a> <span class="tag">Advanced</span></li>
+          </ul>
+        </div>
+
+        <!-- Track 7 -->
+        <div class="track" id="track-pipelines">
+          <div class="track-header">
+            <span class="track-icon">🔧</span>
+            <div><h2>7. Pipeline Design &amp; Optimization</h2><p>Modular pipelines, caching, health metrics.</p></div>
+            <span class="badge todo">Not started</span>
+          </div>
+          <ul class="topic-list">
+            <li><a href="topics/pipeline-design.html">Modular Pipeline Design</a> <span class="tag">Advanced</span></li>
+            <li><a href="topics/pipeline-perf.html">Performance &amp; Caching</a> <span class="tag">Advanced</span></li>
+          </ul>
+        </div>
+
+        <!-- Track 8 -->
+        <div class="track" id="track-ai">
+          <div class="track-header">
+            <span class="track-icon">🤖</span>
+            <div><h2>8. AI &amp; The Tech World</h2><p>LLMs, building with Claude, MCP, agents, Claude Code.</p></div>
+            <span class="badge todo">Not started</span>
+          </div>
+          <ul class="topic-list">
+            <li><a href="topics/ai-claude.html">Claude API, MCP &amp; Claude Code</a> <span class="tag">Beginner→Adv</span></li>
+            <li><a href="topics/ai-agents.html">LLMs, Agents, RAG &amp; MCP Deep Dive</a> <span class="tag">Advanced</span></li>
+            <li><a href="topics/ai-industry.html">Industry Trends &amp; Players</a> <span class="tag">Beginner</span></li>
+          </ul>
+        </div>
+
+        <!-- Track 9 -->
+        <div class="track" id="track-stack">
+          <div class="track-header">
+            <span class="track-icon">🛠️</span>
+            <div><h2>9. Your Stack — Deep Dives</h2><p>Go, Kafka, gRPC, Redis — the tools you use at Yahoo every day.</p></div>
+            <span class="badge todo">Not started</span>
+          </div>
+          <ul class="topic-list">
+            <li><a href="topics/golang.html">Go — Concurrency, Interfaces &amp; Production Patterns</a> <span class="tag">Intermediate</span></li>
+            <li><a href="topics/kafka.html">Apache Kafka — Internals &amp; Production Consumers</a> <span class="tag">Intermediate</span></li>
+            <li><a href="topics/grpc.html">gRPC &amp; Protobuf</a> <span class="tag">Intermediate</span></li>
+            <li><a href="topics/redis.html">Redis — Caching, Pub/Sub &amp; Data Structures</a> <span class="tag">Intermediate</span></li>
+            <li><a href="topics/helm.html">Helm — Chart Writing &amp; EKS Deployments</a> <span class="tag">Intermediate</span></li>
+          </ul>
+        </div>
+
+      </section>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       TAB 3: JOBS
+  ══════════════════════════════════════════════════ -->
+  <div id="tab-jobs" class="tab-panel">
+    <div class="panel-inner">
 
       <!-- Type switcher -->
-      <div class="jobs-type-tabs">
-        <button class="jobs-type-tab active" data-type="tech">💼 Tech Jobs</button>
-        <button class="jobs-type-tab" data-type="modeling">✨ Modeling &amp; Creative</button>
+      <div class="jobs-type-tabs-v2">
+        <button class="jobs-type-tab-v2 active" data-type="tech">💼 Tech Jobs</button>
+        <button class="jobs-type-tab-v2" data-type="modeling">✨ Modeling &amp; Creative</button>
       </div>
 
-      <!-- Tech Jobs Panel -->
-      <div id="jobs-panel-tech" class="jobs-panel">
-        <div class="top-companies">
-          <span class="tc-label">Top companies:</span>
-          <a class="company-chip" href="https://www.cloudflare.com/careers/jobs/" target="_blank" rel="noopener">Cloudflare</a>
-          <a class="company-chip" href="https://careers.datadoghq.com/" target="_blank" rel="noopener">Datadog</a>
-          <a class="company-chip" href="https://stripe.com/jobs" target="_blank" rel="noopener">Stripe</a>
-          <a class="company-chip" href="https://www.hashicorp.com/jobs" target="_blank" rel="noopener">HashiCorp</a>
-          <a class="company-chip" href="https://www.confluent.io/careers/" target="_blank" rel="noopener">Confluent</a>
-          <a class="company-chip" href="https://grafana.com/about/careers/" target="_blank" rel="noopener">Grafana Labs</a>
-          <a class="company-chip" href="https://www.cockroachlabs.com/careers/" target="_blank" rel="noopener">Cockroach Labs</a>
-          <a class="company-chip" href="https://temporal.io/careers" target="_blank" rel="noopener">Temporal</a>
-          <a class="company-chip" href="https://www.pagerduty.com/careers/" target="_blank" rel="noopener">PagerDuty</a>
+      <!-- ── Tech Panel ── -->
+      <div id="jobs-panel-tech">
+        <div class="top-cos">
+          <span class="top-co-label">Hiring your stack:</span>
+          <a class="co-chip" href="https://www.cloudflare.com/careers/jobs/" target="_blank" rel="noopener">Cloudflare</a>
+          <a class="co-chip" href="https://careers.datadoghq.com/" target="_blank" rel="noopener">Datadog</a>
+          <a class="co-chip" href="https://stripe.com/jobs" target="_blank" rel="noopener">Stripe</a>
+          <a class="co-chip" href="https://www.confluent.io/careers/" target="_blank" rel="noopener">Confluent</a>
+          <a class="co-chip" href="https://grafana.com/about/careers/" target="_blank" rel="noopener">Grafana Labs</a>
+          <a class="co-chip" href="https://temporal.io/careers" target="_blank" rel="noopener">Temporal</a>
+          <a class="co-chip" href="https://cast.ai/careers/" target="_blank" rel="noopener">Cast AI</a>
+          <a class="co-chip" href="https://www.hashicorp.com/jobs" target="_blank" rel="noopener">HashiCorp</a>
         </div>
-        <div class="jobs-filter-tabs">
-          <button class="jobs-filter active" data-param="search=platform+engineer+golang">Best Match</button>
-          <button class="jobs-filter" data-param="search=golang+kubernetes">Go + K8s</button>
-          <button class="jobs-filter" data-param="search=platform+engineer+devops">Platform / DevOps</button>
-          <button class="jobs-filter" data-param="search=site+reliability+engineer">SRE</button>
-          <button class="jobs-filter" data-param="search=kafka+data+engineer">Kafka / Data</button>
-          <button class="jobs-filter" data-param="search=backend+engineer+golang">Backend Go</button>
+        <div class="jobs-filter-row">
+          <button class="jobs-chip active" data-tag="devops">All DevOps</button>
+          <button class="jobs-chip" data-tag="golang">Go / Backend</button>
+          <button class="jobs-chip" data-tag="kubernetes">Kubernetes</button>
+          <button class="jobs-chip" data-tag="platform">Platform Eng</button>
+          <button class="jobs-chip" data-tag="kafka">Kafka / Data</button>
+          <button class="jobs-chip" data-tag="sre">SRE</button>
+          <button class="jobs-refresh-btn" id="jobs-refresh-btn">Refresh</button>
         </div>
-        <div class="jobs-grid" id="tech-jobs-grid">
-          <div class="jobs-loading">Loading remote jobs…</div>
+        <div class="jobs-grid-v2" id="tech-jobs-grid">
+          <div class="jobs-empty-v2">Loading jobs…</div>
+        </div>
+      </div>
+
+      <!-- ── Modeling Panel ── -->
+      <div id="jobs-panel-modeling" style="display:none">
+        <div class="model-platforms-v2">
+          <span class="mp-label">Find work on:</span>
+          <a class="mp-link" href="https://www.castingcallclub.com/casting-calls" target="_blank" rel="noopener">Casting Call Club</a>
+          <a class="mp-link" href="https://www.backstage.com/casting-calls/" target="_blank" rel="noopener">Backstage</a>
+          <a class="mp-link" href="https://www.castingnetworks.com/casting-notices" target="_blank" rel="noopener">Casting Networks</a>
+          <a class="mp-link" href="https://www.modelmayhem.com/jobs" target="_blank" rel="noopener">Model Mayhem</a>
+          <a class="mp-link" href="https://www.exploretalent.com/auditions" target="_blank" rel="noopener">Explore Talent</a>
+          <a class="mp-link" href="https://www.wilhelmina.com/new-faces" target="_blank" rel="noopener">Wilhelmina</a>
+          <a class="mp-link" href="https://www.imgmodels.com/new-faces" target="_blank" rel="noopener">IMG Models</a>
+        </div>
+        <div class="jobs-grid-v2" id="modeling-jobs-grid">
+          <div class="jobs-empty-v2">Loading casting calls…</div>
         </div>
       </div>
 
-      <!-- Modeling & Creative Panel -->
-      <div id="jobs-panel-modeling" class="jobs-panel" style="display:none">
-        <div class="modeling-platforms">
-          <span class="platform-label">Find work on:</span>
-          <a class="platform-link" href="https://www.castingcallclub.com/casting-calls" target="_blank" rel="noopener">Casting Call Club</a>
-          <a class="platform-link" href="https://www.backstage.com/casting-calls/" target="_blank" rel="noopener">Backstage</a>
-          <a class="platform-link" href="https://www.castingnetworks.com/casting-notices" target="_blank" rel="noopener">Casting Networks</a>
-          <a class="platform-link" href="https://www.modelmayhem.com/jobs" target="_blank" rel="noopener">Model Mayhem</a>
-          <a class="platform-link" href="https://www.exploretalent.com/auditions" target="_blank" rel="noopener">Explore Talent</a>
-          <a class="platform-link" href="https://www.wilhelmina.com/new-faces" target="_blank" rel="noopener">Wilhelmina</a>
-          <a class="platform-link" href="https://www.imgmodels.com/new-faces" target="_blank" rel="noopener">IMG Models</a>
-        </div>
-        <div class="jobs-grid" id="modeling-jobs-grid">
-          <div class="jobs-loading">Loading casting calls…</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ── PROGRESS ── -->
-    <section class="progress-bar-section">
-      <div class="progress-wrap">
-        <span>Overall Progress</span>
-        <div class="bar"><div class="bar-fill" style="width: 0%"></div></div>
-        <span class="pct">0%</span>
-      </div>
-    </section>
-
-    <section class="tracks">
-
-      <!-- Track 1 -->
-      <div class="track" id="track-core">
-        <div class="track-header">
-          <span class="track-icon">🏗️</span>
-          <div>
-            <h2>1. Core Foundations</h2>
-            <p>Git, Linux, Networking — the bedrock of everything.</p>
-          </div>
-          <span class="badge todo">Not started</span>
-        </div>
-        <ul class="topic-list">
-          <li><a href="topics/git.html">Git &amp; Branching Strategies</a> <span class="tag">Beginner</span></li>
-          <li><a href="topics/linux.html">Linux Basics</a> <span class="tag">Beginner</span></li>
-          <li><a href="topics/networking.html">Networking Basics</a> <span class="tag">Beginner</span></li>
-        </ul>
-      </div>
-
-      <!-- Track 2 -->
-      <div class="track" id="track-ci">
-        <div class="track-header">
-          <span class="track-icon">⚙️</span>
-          <div>
-            <h2>2. Continuous Integration</h2>
-            <p>Build systems, automated testing, CI tools.</p>
-          </div>
-          <span class="badge todo">Not started</span>
-        </div>
-        <ul class="topic-list">
-          <li><a href="topics/ci-concepts.html">CI Concepts</a> <span class="tag">Beginner</span></li>
-          <li><a href="topics/build-systems.html">Build Systems</a> <span class="tag">Intermediate</span></li>
-          <li><a href="topics/automated-testing.html">Automated Testing in CI</a> <span class="tag">Intermediate</span></li>
-          <li><a href="topics/github-actions.html">GitHub Actions Deep Dive</a> <span class="tag">Intermediate</span></li>
-        </ul>
-      </div>
-
-      <!-- Track 3 -->
-      <div class="track" id="track-cd">
-        <div class="track-header">
-          <span class="track-icon">🚀</span>
-          <div>
-            <h2>3. CD &amp; Deployment</h2>
-            <p>Delivery vs deployment, release strategies, rollback.</p>
-          </div>
-          <span class="badge todo">Not started</span>
-        </div>
-        <ul class="topic-list">
-          <li><a href="topics/cd-concepts.html">CD Concepts &amp; Environments</a> <span class="tag">Beginner</span></li>
-          <li><a href="topics/release-strategies.html">Blue/Green, Canary, Rolling</a> <span class="tag">Intermediate</span></li>
-          <li><a href="topics/rollback.html">Rollback &amp; Recovery</a> <span class="tag">Intermediate</span></li>
-        </ul>
-      </div>
-
-      <!-- Track 4 -->
-      <div class="track" id="track-cloud">
-        <div class="track-header">
-          <span class="track-icon">☁️</span>
-          <div>
-            <h2>4. Cloud &amp; Infrastructure</h2>
-            <p>AWS/GCP/Azure, Docker, Kubernetes.</p>
-          </div>
-          <span class="badge todo">Not started</span>
-        </div>
-        <ul class="topic-list">
-          <li><a href="topics/cloud-basics.html">Cloud Basics (AWS focus)</a> <span class="tag">Beginner</span></li>
-          <li><a href="topics/docker.html">Docker</a> <span class="tag">Beginner</span></li>
-          <li><a href="topics/kubernetes.html">Kubernetes</a> <span class="tag">Intermediate</span></li>
-        </ul>
-      </div>
-
-      <!-- Track 5 -->
-      <div class="track" id="track-iac">
-        <div class="track-header">
-          <span class="track-icon">📋</span>
-          <div>
-            <h2>5. Infrastructure as Code</h2>
-            <p>Terraform, config management, reproducible infra.</p>
-          </div>
-          <span class="badge todo">Not started</span>
-        </div>
-        <ul class="topic-list">
-          <li><a href="topics/terraform.html">Terraform</a> <span class="tag">Intermediate</span></li>
-          <li><a href="topics/ansible.html">Ansible &amp; Config Management</a> <span class="tag">Intermediate</span></li>
-        </ul>
-      </div>
-
-      <!-- Track 6 -->
-      <div class="track" id="track-security">
-        <div class="track-header">
-          <span class="track-icon">🔐</span>
-          <div>
-            <h2>6. Quality, Security &amp; Observability</h2>
-            <p>DevSecOps, monitoring, logging, alerting.</p>
-          </div>
-          <span class="badge todo">Not started</span>
-        </div>
-        <ul class="topic-list">
-          <li><a href="topics/devsecops.html">DevSecOps Basics</a> <span class="tag">Intermediate</span></li>
-          <li><a href="topics/monitoring.html">Monitoring &amp; Logging</a> <span class="tag">Intermediate</span></li>
-          <li><a href="topics/sonarqube.html">SonarQube &amp; SAST/DAST</a> <span class="tag">Advanced</span></li>
-        </ul>
-      </div>
-
-      <!-- Track 7 -->
-      <div class="track" id="track-pipelines">
-        <div class="track-header">
-          <span class="track-icon">🔧</span>
-          <div>
-            <h2>7. Pipeline Design &amp; Optimization</h2>
-            <p>Modular pipelines, caching, health metrics.</p>
-          </div>
-          <span class="badge todo">Not started</span>
-        </div>
-        <ul class="topic-list">
-          <li><a href="topics/pipeline-design.html">Modular Pipeline Design</a> <span class="tag">Advanced</span></li>
-          <li><a href="topics/pipeline-perf.html">Performance &amp; Caching</a> <span class="tag">Advanced</span></li>
-        </ul>
-      </div>
-
-      <!-- Track 8 — AI -->
-      <div class="track" id="track-ai">
-        <div class="track-header">
-          <span class="track-icon">🤖</span>
-          <div>
-            <h2>8. AI &amp; The Tech World</h2>
-            <p>LLMs, building with Claude, MCP, agents, Claude Code.</p>
-          </div>
-          <span class="badge todo">Not started</span>
-        </div>
-        <ul class="topic-list">
-          <li><a href="topics/ai-claude.html">Claude API, MCP &amp; Claude Code</a> <span class="tag">Beginner→Adv</span></li>
-          <li><a href="topics/ai-agents.html">LLMs, Agents, RAG &amp; MCP Deep Dive</a> <span class="tag">Advanced</span></li>
-          <li><a href="topics/ai-industry.html">Industry Trends &amp; Players</a> <span class="tag">Beginner</span></li>
-        </ul>
-      </div>
-
-      <!-- Track 9 — Your Stack -->
-      <div class="track" id="track-stack">
-        <div class="track-header">
-          <span class="track-icon">🛠️</span>
-          <div>
-            <h2>9. Your Stack — Deep Dives</h2>
-            <p>Go, Kafka, gRPC, Redis — the tools you use at Yahoo every day.</p>
-          </div>
-          <span class="badge todo">Not started</span>
-        </div>
-        <ul class="topic-list">
-          <li><a href="topics/golang.html">Go — Concurrency, Interfaces &amp; Production Patterns</a> <span class="tag">Intermediate</span></li>
-          <li><a href="topics/kafka.html">Apache Kafka — Internals &amp; Production Consumers</a> <span class="tag">Intermediate</span></li>
-          <li><a href="topics/grpc.html">gRPC &amp; Protobuf</a> <span class="tag">Intermediate</span></li>
-          <li><a href="topics/redis.html">Redis — Caching, Pub/Sub &amp; Data Structures</a> <span class="tag">Intermediate</span></li>
-          <li><a href="topics/helm.html">Helm — Chart Writing &amp; EKS Deployments</a> <span class="tag">Intermediate</span></li>
-        </ul>
-      </div>
-
-    </section>
-  </main>
+    </div>
+  </div>
 
   <footer>
     <p>Built to learn. One topic at a time.</p>
   </footer>
 
+  <script>
+    // Tab navigation
+    document.querySelectorAll('.nav-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        const target = tab.dataset.tab;
+        document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById('tab-' + target).classList.add('active');
+      });
+    });
+  </script>
   <script src="js/main.js"></script>
   <script src="js/news.js"></script>
   <script src="js/jobs.js"></script>

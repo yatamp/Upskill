@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Upskill Dashboard</title>
-  <link rel="stylesheet" href="css/style.css?v=3" />
+  <link rel="stylesheet" href="css/style.css?v=4" />
   <style>
     .topic-list li.done a { text-decoration: line-through; opacity: 0.5; }
   </style>
@@ -207,54 +207,63 @@
   <div id="tab-jobs" class="tab-panel">
     <div class="panel-inner">
 
-      <!-- Type switcher -->
-      <div class="jobs-type-tabs-v2">
-        <button class="jobs-type-tab-v2 active" data-type="tech">💼 Tech Jobs</button>
-        <button class="jobs-type-tab-v2" data-type="modeling">✨ Modeling &amp; Creative</button>
-      </div>
+      <!-- ── Search & Filters ── -->
+      <div class="jobs-filters-wrap">
 
-      <!-- ── Tech Panel ── -->
-      <div id="jobs-panel-tech">
-        <div class="top-cos">
-          <span class="top-co-label">Hiring your stack:</span>
-          <a class="co-chip" href="https://www.cloudflare.com/careers/jobs/" target="_blank" rel="noopener">Cloudflare</a>
-          <a class="co-chip" href="https://careers.datadoghq.com/" target="_blank" rel="noopener">Datadog</a>
-          <a class="co-chip" href="https://stripe.com/jobs" target="_blank" rel="noopener">Stripe</a>
-          <a class="co-chip" href="https://www.confluent.io/careers/" target="_blank" rel="noopener">Confluent</a>
-          <a class="co-chip" href="https://grafana.com/about/careers/" target="_blank" rel="noopener">Grafana Labs</a>
-          <a class="co-chip" href="https://temporal.io/careers" target="_blank" rel="noopener">Temporal</a>
-          <a class="co-chip" href="https://cast.ai/careers/" target="_blank" rel="noopener">Cast AI</a>
-          <a class="co-chip" href="https://www.hashicorp.com/jobs" target="_blank" rel="noopener">HashiCorp</a>
+        <!-- Row 1: search + location -->
+        <div class="jobs-search-row">
+          <div class="jobs-search-box">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input type="text" id="jobs-role-input" placeholder="Search role, title, company…" autocomplete="off" />
+          </div>
+          <div class="jobs-location-wrap">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+            <select id="jobs-location-select">
+              <option value="">All US Remote</option>
+              <option value="new york">New York</option>
+              <option value="san francisco">San Francisco</option>
+              <option value="austin">Austin</option>
+              <option value="seattle">Seattle</option>
+              <option value="chicago">Chicago</option>
+              <option value="boston">Boston</option>
+              <option value="remote">Remote / Worldwide</option>
+            </select>
+          </div>
+          <button class="jobs-refresh-btn" id="jobs-refresh-btn">↺ Refresh</button>
         </div>
+
+        <!-- Row 2: language/role chips -->
         <div class="jobs-filter-row">
-          <button class="jobs-chip active" data-tag="devops">All DevOps</button>
-          <button class="jobs-chip" data-tag="golang">Go / Backend</button>
+          <span class="jobs-filter-label">Stack:</span>
+          <button class="jobs-chip active" data-tag="devops">All</button>
+          <button class="jobs-chip" data-tag="golang">Go</button>
+          <button class="jobs-chip" data-tag="python">Python</button>
           <button class="jobs-chip" data-tag="kubernetes">Kubernetes</button>
-          <button class="jobs-chip" data-tag="platform">Platform Eng</button>
-          <button class="jobs-chip" data-tag="kafka">Kafka / Data</button>
+          <button class="jobs-chip" data-tag="kafka">Kafka</button>
+          <button class="jobs-chip" data-tag="terraform">Terraform</button>
           <button class="jobs-chip" data-tag="sre">SRE</button>
-          <button class="jobs-refresh-btn" id="jobs-refresh-btn">Refresh</button>
+          <button class="jobs-chip" data-tag="backend">Backend</button>
         </div>
-        <div class="jobs-grid-v2" id="tech-jobs-grid">
-          <div class="jobs-empty-v2">Loading jobs…</div>
-        </div>
+
       </div>
 
-      <!-- ── Modeling Panel ── -->
-      <div id="jobs-panel-modeling" style="display:none">
-        <div class="model-platforms-v2">
-          <span class="mp-label">Find work on:</span>
-          <a class="mp-link" href="https://www.castingcallclub.com/casting-calls" target="_blank" rel="noopener">Casting Call Club</a>
-          <a class="mp-link" href="https://www.backstage.com/casting-calls/" target="_blank" rel="noopener">Backstage</a>
-          <a class="mp-link" href="https://www.castingnetworks.com/casting-notices" target="_blank" rel="noopener">Casting Networks</a>
-          <a class="mp-link" href="https://www.modelmayhem.com/jobs" target="_blank" rel="noopener">Model Mayhem</a>
-          <a class="mp-link" href="https://www.exploretalent.com/auditions" target="_blank" rel="noopener">Explore Talent</a>
-          <a class="mp-link" href="https://www.wilhelmina.com/new-faces" target="_blank" rel="noopener">Wilhelmina</a>
-          <a class="mp-link" href="https://www.imgmodels.com/new-faces" target="_blank" rel="noopener">IMG Models</a>
-        </div>
-        <div class="jobs-grid-v2" id="modeling-jobs-grid">
-          <div class="jobs-empty-v2">Loading casting calls…</div>
-        </div>
+      <!-- ── Top companies ── -->
+      <div class="top-cos">
+        <span class="top-co-label">Hiring your stack:</span>
+        <a class="co-chip" href="https://www.cloudflare.com/careers/jobs/" target="_blank" rel="noopener">Cloudflare</a>
+        <a class="co-chip" href="https://careers.datadoghq.com/" target="_blank" rel="noopener">Datadog</a>
+        <a class="co-chip" href="https://stripe.com/jobs" target="_blank" rel="noopener">Stripe</a>
+        <a class="co-chip" href="https://www.confluent.io/careers/" target="_blank" rel="noopener">Confluent</a>
+        <a class="co-chip" href="https://grafana.com/about/careers/" target="_blank" rel="noopener">Grafana Labs</a>
+        <a class="co-chip" href="https://temporal.io/careers" target="_blank" rel="noopener">Temporal</a>
+        <a class="co-chip" href="https://cast.ai/careers/" target="_blank" rel="noopener">Cast AI</a>
+        <a class="co-chip" href="https://www.hashicorp.com/jobs" target="_blank" rel="noopener">HashiCorp</a>
+      </div>
+
+      <!-- ── Results ── -->
+      <div id="jobs-count" style="font-size:0.78rem;color:var(--muted);margin-bottom:0.75rem"></div>
+      <div class="jobs-grid-v2" id="tech-jobs-grid">
+        <div class="jobs-empty-v2">Loading jobs…</div>
       </div>
 
     </div>
@@ -276,9 +285,9 @@
       });
     });
   </script>
-  <script src="js/main.js?v=3"></script>
-  <script src="js/news.js?v=3"></script>
-  <script src="js/jobs.js?v=3"></script>
-  <script src="js/agent.js?v=3"></script>
+  <script src="js/main.js?v=4"></script>
+  <script src="js/news.js?v=4"></script>
+  <script src="js/jobs.js?v=4"></script>
+  <script src="js/agent.js?v=4"></script>
 </body>
 </html>

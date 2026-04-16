@@ -1,18 +1,38 @@
 // ── Live Jobs Feed ───────────────────────────────────────────
-// RemoteOK API (free, CORS-friendly) — fetched by tag
-// Fallback: Remotive API
-// All filtering (role search, location, language) is client-side
+// Primary: Greenhouse ATS API — tier-1 tech company job boards
+// Supplemental: RemoteOK API for broader remote coverage
+// All filtering (search, location, stack tag) is client-side
 
 (function () {
   'use strict';
 
-  let allJobs = [];       // full fetched set for current tag
-  let currentTag = 'devops';
+  let allJobs = [];
+  let currentTag = 'all';
   let searchQuery = '';
   let locationFilter = '';
   let debounceTimer = null;
   let cache = {};
 
+  // ── Tier-1 & Tier-2 companies on Greenhouse ATS ────────────
+  const GREENHOUSE_COMPANIES = [
+    { name: 'Stripe',         slug: 'stripe',        logo: 'https://logo.clearbit.com/stripe.com' },
+    { name: 'Cloudflare',     slug: 'cloudflare',    logo: 'https://logo.clearbit.com/cloudflare.com' },
+    { name: 'Datadog',        slug: 'datadog',       logo: 'https://logo.clearbit.com/datadoghq.com' },
+    { name: 'Grafana Labs',   slug: 'grafanalabs',   logo: 'https://logo.clearbit.com/grafana.com' },
+    { name: 'Vercel',         slug: 'vercel',        logo: 'https://logo.clearbit.com/vercel.com' },
+    { name: 'PagerDuty',      slug: 'pagerduty',     logo: 'https://logo.clearbit.com/pagerduty.com' },
+    { name: 'Figma',          slug: 'figma',         logo: 'https://logo.clearbit.com/figma.com' },
+    { name: 'Brex',           slug: 'brex',          logo: 'https://logo.clearbit.com/brex.com' },
+    { name: 'Plaid',          slug: 'plaid',         logo: 'https://logo.clearbit.com/plaid.com' },
+    { name: 'Robinhood',      slug: 'robinhood',     logo: 'https://logo.clearbit.com/robinhood.com' },
+    { name: 'DoorDash',       slug: 'doordash',      logo: 'https://logo.clearbit.com/doordash.com' },
+    { name: 'Reddit',         slug: 'reddit',        logo: 'https://logo.clearbit.com/reddit.com' },
+    { name: 'Coinbase',       slug: 'coinbase',      logo: 'https://logo.clearbit.com/coinbase.com' },
+    { name: 'Benchling',      slug: 'benchling',     logo: 'https://logo.clearbit.com/benchling.com' },
+    { name: 'Vanta',          slug: 'vanta',         logo: 'https://logo.clearbit.com/vanta.com' },
+  ];
+
+  // Profile keywords for match scoring
   const PROFILE = [
     'go', 'golang', 'kubernetes', 'k8s', 'kafka', 'terraform', 'docker',
     'prometheus', 'grafana', 'datadog', 'grpc', 'redis', 'python', 'aws',
@@ -21,126 +41,187 @@
     'linux', 'ci/cd', 'pipeline', 'infrastructure',
   ];
 
-  // RemoteOK tag mapping
-  const TAG_MAP = {
-    devops: 'devops', golang: 'golang', python: 'python',
-    kubernetes: 'kubernetes', kafka: 'kafka',
-    terraform: 'terraform', sre: 'sre', backend: 'backend',
+  // Stack filter → keywords to match in title/tags
+  const TAG_KEYWORDS = {
+    all:        ['engineer', 'platform', 'devops', 'sre', 'backend', 'infrastructure', 'reliability', 'golang', 'infra'],
+    golang:     ['go', 'golang'],
+    python:     ['python'],
+    kubernetes: ['kubernetes', 'k8s'],
+    kafka:      ['kafka', 'data engineer', 'streaming'],
+    terraform:  ['terraform', 'infrastructure', 'infra', 'iac'],
+    sre:        ['sre', 'reliability', 'site reliability'],
+    platform:   ['platform', 'devops', 'infrastructure engineer'],
+    backend:    ['backend', 'back-end', 'server-side'],
   };
 
-  // Remotive category fallback
-  const REMOTIVE_CAT = {
-    devops: 'devops-sysadmin', golang: 'software-dev', python: 'software-dev',
-    kubernetes: 'devops-sysadmin', kafka: 'devops-sysadmin',
-    terraform: 'devops-sysadmin', sre: 'devops-sysadmin', backend: 'software-dev',
-  };
-
-  // ── US filter ──────────────────────────────────────────────
-  function isUsAccessible(loc) {
+  // ── US location check ──────────────────────────────────────
+  function isUS(loc) {
     if (!loc || !loc.trim()) return true;
     const l = loc.toLowerCase();
+    // Explicit non-US — skip
+    const SKIP = ['paris', 'london', 'berlin', 'lisbon', 'sydney', 'amsterdam',
+      'toronto (not', 'india', 'bengaluru', 'singapo', 'latam', 'mexico city',
+      'münchen', 'munich', 'madrid', 'rome', 'milan', 'warsaw', 'krakow'];
+    if (SKIP.some(s => l.includes(s))) return false;
     const ALLOW = [
-      'remote', 'global', 'worldwide', 'anywhere', 'distributed', 'international',
-      'united states', 'usa', 'u.s.', 'america', 'north america', 'canada',
-      'new york', ' ny', 'san francisco', 'austin', 'chicago', 'seattle',
+      'united states', 'usa', 'u.s.', 'remote', 'global', 'worldwide',
+      'anywhere', 'hybrid', 'distributed', 'north america', 'americas',
+      'new york', 'san francisco', 'austin', 'seattle', 'chicago',
       'boston', 'denver', 'los angeles', 'atlanta', 'dallas', 'miami',
-      'reston', 'rockville', 'chantilly', 'salt lake', 'redwood',
+      'remote - us', 'remote (us)', 'us only', 'canada',
     ];
     return ALLOW.some(s => l.includes(s));
   }
 
   // ── Score ──────────────────────────────────────────────────
-  function scoreJob(title, desc, tags) {
-    const hay = [title, desc, (tags || []).join(' ')].join(' ').toLowerCase();
-    return PROFILE.filter(k => hay.includes(k)).length;
+  function score(title) {
+    const t = title.toLowerCase();
+    return PROFILE.filter(k => t.includes(k)).length;
   }
 
-  // ── Fetch: RemoteOK ────────────────────────────────────────
-  async function fetchRemoteOK(tag) {
-    const key = 'rok_' + tag;
+  // ── Fetch: Greenhouse (one company) ───────────────────────
+  async function fetchGreenhouse(company) {
+    const key = 'gh_' + company.slug;
     if (cache[key]) return cache[key];
-    const res = await fetch(`https://remoteok.com/api?tag=${tag}`, {
-      headers: { 'User-Agent': 'Mozilla/5.0' },
-    });
-    if (!res.ok) throw new Error('RemoteOK ' + res.status);
+    const res = await fetch(
+      `https://boards-api.greenhouse.io/v1/boards/${company.slug}/jobs?content=false`
+    );
+    if (!res.ok) return [];
     const data = await res.json();
-    const jobs = data
-      .filter(j => j && j.position && j.company)
-      .filter(j => isUsAccessible(j.location))
-      .map(j => ({
-        title: j.position,
-        company: j.company,
-        logo: j.company_logo || j.logo || null,
-        url: j.apply_url || j.url || `https://remoteok.com/remote-jobs/${j.slug}`,
-        location: j.location || '',
-        salary: j.salary_min > 0
-          ? `$${Math.round(j.salary_min / 1000)}k–$${Math.round(j.salary_max / 1000)}k`
-          : '',
-        tags: (j.tags || []).slice(0, 6),
-        epoch: j.epoch || 0,
-        score: scoreJob(j.position, j.description || '', j.tags),
-        source: 'RemoteOK',
-      }));
-    if (!jobs.length) throw new Error('no results');
-    cache[key] = jobs;
-    return jobs;
-  }
-
-  // ── Fetch: Remotive fallback ───────────────────────────────
-  async function fetchRemotive(tag) {
-    const cat = REMOTIVE_CAT[tag] || 'devops-sysadmin';
-    const key = 'rem_' + cat;
-    if (cache[key]) return cache[key];
-    const res = await fetch(`https://remotive.com/api/remote-jobs?category=${cat}&limit=40`);
-    if (!res.ok) throw new Error('Remotive ' + res.status);
-    const data = await res.json();
+    const ENG_TERMS = ['engineer', 'engineering', 'platform', 'devops', 'sre', 'reliability',
+      'backend', 'infrastructure', 'infra', 'golang', 'data infra'];
     const jobs = (data.jobs || [])
-      .filter(j => isUsAccessible(j.candidate_required_location))
+      .filter(j => {
+        const t = j.title.toLowerCase();
+        return ENG_TERMS.some(k => t.includes(k));
+      })
+      .filter(j => isUS(j.location?.name))
       .map(j => ({
         title: j.title,
-        company: j.company_name,
-        logo: j.company_logo_url || j.company_logo || null,
-        url: j.url,
-        location: j.candidate_required_location || '',
-        salary: j.salary ? j.salary.replace(/<[^>]+>/g, '').slice(0, 60) : '',
-        tags: (j.tags || []).slice(0, 6),
-        epoch: j.publication_date ? new Date(j.publication_date).getTime() / 1000 : 0,
-        score: scoreJob(j.title, j.description || '', j.tags),
-        source: 'Remotive',
+        company: company.name,
+        logo: company.logo,
+        url: j.absolute_url,
+        location: j.location?.name || 'Remote',
+        salary: '',
+        tags: [],
+        updatedAt: j.updated_at,
+        score: score(j.title),
+        source: 'Greenhouse',
       }));
     cache[key] = jobs;
     return jobs;
   }
 
-  // ── Client-side filter + render ────────────────────────────
+  // ── Fetch: RemoteOK supplement ─────────────────────────────
+  async function fetchRemoteOK(tag) {
+    const rokTag = tag === 'all' ? 'devops' : tag;
+    const key = 'rok_' + rokTag;
+    if (cache[key]) return cache[key];
+    try {
+      const res = await fetch(`https://remoteok.com/api?tag=${rokTag}`, {
+        headers: { 'User-Agent': 'Mozilla/5.0' },
+      });
+      if (!res.ok) return [];
+      const data = await res.json();
+      const jobs = data
+        .filter(j => j && j.position && j.company)
+        .filter(j => isUS(j.location))
+        .map(j => ({
+          title: j.position,
+          company: j.company,
+          logo: j.company_logo || j.logo || null,
+          url: j.apply_url || j.url || `https://remoteok.com/remote-jobs/${j.slug}`,
+          location: j.location || 'Remote',
+          salary: j.salary_min > 0
+            ? `$${Math.round(j.salary_min / 1000)}k–$${Math.round(j.salary_max / 1000)}k`
+            : '',
+          tags: (j.tags || []).slice(0, 5),
+          updatedAt: j.epoch ? new Date(j.epoch * 1000).toISOString() : null,
+          score: score(j.position),
+          source: 'RemoteOK',
+        }));
+      cache[key] = jobs;
+      return jobs;
+    } catch (_) { return []; }
+  }
+
+  // ── Load all jobs ──────────────────────────────────────────
+  async function loadAllJobs() {
+    const grid = document.getElementById('tech-jobs-grid');
+    const countEl = document.getElementById('jobs-count');
+    grid.innerHTML = '<div class="jobs-empty-v2" style="padding:1.5rem">Fetching jobs from tier-1 companies…</div>';
+    if (countEl) countEl.textContent = '';
+
+    try {
+      // Fetch all Greenhouse boards in parallel + RemoteOK
+      const results = await Promise.allSettled([
+        ...GREENHOUSE_COMPANIES.map(c => fetchGreenhouse(c)),
+        fetchRemoteOK(currentTag),
+      ]);
+
+      allJobs = results
+        .filter(r => r.status === 'fulfilled')
+        .flatMap(r => r.value);
+
+      if (!allJobs.length) throw new Error('No jobs returned from any source');
+    } catch (e) {
+      allJobs = [];
+      grid.innerHTML = `<div class="jobs-empty-v2">Could not load jobs — ${e.message}. Try refreshing.</div>`;
+      return;
+    }
+
+    applyFilters();
+  }
+
+  // ── Client-side filtering ──────────────────────────────────
   function applyFilters() {
     const q = searchQuery.toLowerCase().trim();
     const loc = locationFilter.toLowerCase().trim();
+    const tagKw = TAG_KEYWORDS[currentTag] || TAG_KEYWORDS.all;
 
     let results = allJobs.filter(j => {
-      // Role / text search
-      if (q) {
-        const hay = [j.title, j.company, j.tags.join(' ')].join(' ').toLowerCase();
-        if (!hay.includes(q)) return false;
-      }
-      // Location filter
-      if (loc) {
-        const jloc = j.location.toLowerCase();
-        if (!jloc.includes(loc)) return false;
-      }
+      const title = j.title.toLowerCase();
+      const company = j.company.toLowerCase();
+      const jloc = j.location.toLowerCase();
+
+      // Stack/tag filter
+      const matchesTag = tagKw.some(k => title.includes(k) || (j.tags || []).some(t => t.toLowerCase().includes(k)));
+      if (!matchesTag) return false;
+
+      // Free-text search
+      if (q && ![title, company, (j.tags || []).join(' ')].join(' ').includes(q)) return false;
+
+      // Location dropdown
+      if (loc && !jloc.includes(loc)) return false;
+
       return true;
     });
 
-    // Sort: best match first, then newest
-    results.sort((a, b) => b.score - a.score || b.epoch - a.epoch);
+    // Sort: best profile match, then newest
+    results.sort((a, b) => b.score - a.score
+      || new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0));
 
-    renderJobs(results);
+    // Deduplicate by title+company
+    const seen = new Set();
+    results = results.filter(j => {
+      const key = j.title.toLowerCase() + j.company.toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+    renderJobs(results.slice(0, 40));
+
+    if (document.getElementById('jobs-count')) {
+      document.getElementById('jobs-count').textContent =
+        results.length ? `${results.length} job${results.length > 1 ? 's' : ''} found` : '';
+    }
   }
 
   // ── Render ─────────────────────────────────────────────────
-  function timeAgo(epoch) {
-    if (!epoch) return '';
-    const diff = Date.now() - epoch * 1000;
+  function timeAgo(iso) {
+    if (!iso) return '';
+    const diff = Date.now() - new Date(iso).getTime();
     const h = Math.floor(diff / 3600000);
     const d = Math.floor(h / 24);
     if (h < 1) return 'just now';
@@ -151,26 +232,18 @@
 
   function renderJobs(jobs) {
     const grid = document.getElementById('tech-jobs-grid');
-    const countEl = document.getElementById('jobs-count');
-
-    if (countEl) countEl.textContent = jobs.length
-      ? `${jobs.length} job${jobs.length > 1 ? 's' : ''} found`
-      : '';
-
     if (!jobs.length) {
       grid.innerHTML = '<div class="jobs-empty-v2">No jobs match your filters — try clearing the search or switching the stack tab.</div>';
       return;
     }
-
     grid.innerHTML = jobs.map(j => {
-      const badge = j.score >= 6
+      const badge = j.score >= 5
         ? '<span class="match-strong">Strong match</span>'
         : j.score >= 3 ? '<span class="match-good">Good match</span>' : '';
-      const tags = j.tags.map(t => `<span class="jc-tag">${t}</span>`).join('');
+      const tags = (j.tags || []).map(t => `<span class="jc-tag">${t}</span>`).join('');
       const logo = j.logo
         ? `<img class="jc-logo" src="${j.logo}" alt="" loading="lazy" onerror="this.style.display='none'">`
-        : '';
-      const loc = j.location || 'Remote';
+        : `<div class="jc-logo-fallback">${j.company[0]}</div>`;
       return `
         <div class="job-card-v2">
           <div class="jc-top">
@@ -181,51 +254,30 @@
             </div>
           </div>
           <div class="jc-meta">
-            <span class="jc-loc">${loc}</span>
+            <span class="jc-loc">${j.location}</span>
             ${j.salary ? `<span class="jc-salary">${j.salary}</span>` : ''}
-            <span class="jc-age">${timeAgo(j.epoch)}</span>
+            <span class="jc-age">${timeAgo(j.updatedAt)}</span>
           </div>
           ${tags ? `<div class="jc-tags">${tags}</div>` : ''}
         </div>`;
     }).join('');
   }
 
-  // ── Load by tag ────────────────────────────────────────────
-  async function loadJobs() {
-    const grid = document.getElementById('tech-jobs-grid');
-    grid.innerHTML = '<div class="jobs-empty-v2" style="padding:1.5rem">Fetching jobs…</div>';
-    const countEl = document.getElementById('jobs-count');
-    if (countEl) countEl.textContent = '';
-
-    try {
-      allJobs = await fetchRemoteOK(TAG_MAP[currentTag] || currentTag);
-    } catch (_) {
-      try {
-        allJobs = await fetchRemotive(currentTag);
-      } catch (e) {
-        allJobs = [];
-        grid.innerHTML = `<div class="jobs-empty-v2">Could not load jobs — ${e.message}. Try refreshing.</div>`;
-        return;
-      }
-    }
-    applyFilters();
-  }
-
   // ── Init ───────────────────────────────────────────────────
   function initJobs() {
     if (!document.getElementById('tech-jobs-grid')) return;
 
-    // Stack chip tabs
+    // Stack chips
     document.querySelectorAll('.jobs-chip').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.jobs-chip').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         currentTag = btn.dataset.tag;
-        loadJobs();
+        applyFilters(); // filter already-loaded jobs, no refetch
       });
     });
 
-    // Role search input — debounced
+    // Role search
     const roleInput = document.getElementById('jobs-role-input');
     if (roleInput) {
       roleInput.addEventListener('input', () => {
@@ -250,11 +302,11 @@
       refreshBtn.addEventListener('click', () => {
         cache = {};
         allJobs = [];
-        loadJobs();
+        loadAllJobs();
       });
     }
 
-    loadJobs();
+    loadAllJobs();
   }
 
   if (document.readyState === 'loading') {

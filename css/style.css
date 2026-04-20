@@ -573,6 +573,194 @@ pre code {
 .jobs-location-wrap select option { background: #1a1d27; color: var(--text); }
 .jobs-filter-label { font-size: 0.74rem; color: var(--muted); white-space: nowrap; align-self: center; }
 
+/* ═══════════════════════════════════════════════════════
+   CREDIT SCORE TAB
+   ═══════════════════════════════════════════════════════ */
+.credit-inner { max-width: 960px; margin: 0 auto; padding: 1.5rem 1.5rem 3rem; }
+
+.credit-header-row {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.25rem;
+}
+.credit-page-title { font-size: 1.3rem; font-weight: 700; margin-bottom: 0.2rem; }
+.credit-page-sub { font-size: 0.82rem; color: var(--muted); }
+.credit-page-sub strong { color: var(--accent2); }
+.credit-monitors { display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap; }
+.credit-mon-link {
+  font-size: 0.74rem; color: var(--accent2); text-decoration: none;
+  padding: 0.2rem 0.6rem; border: 1px solid var(--border); border-radius: 5px;
+  transition: all 0.15s;
+}
+.credit-mon-link:hover { border-color: var(--accent2); background: rgba(34,211,238,0.08); }
+
+.credit-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; padding: 1.25rem 1.4rem; margin-bottom: 1rem;
+}
+.credit-card-title {
+  font-size: 0.74rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.07em; color: var(--muted); margin-bottom: 1rem;
+}
+
+/* ── Top grid ── */
+.credit-top-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;
+}
+@media (max-width: 700px) { .credit-top-grid { grid-template-columns: 1fr; } }
+
+/* ── Gauge ── */
+.credit-gauge-card { display: flex; flex-direction: column; align-items: center; gap: 0.85rem; }
+.credit-gauge-wrap { position: relative; display: flex; justify-content: center; }
+.credit-gauge-overlay {
+  position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%);
+  text-align: center; pointer-events: none;
+}
+.credit-gauge-score { font-size: 2rem; font-weight: 800; color: var(--text); line-height: 1; }
+.credit-gauge-label { font-size: 0.75rem; color: var(--muted); margin-top: 0.15rem; }
+
+/* Range bar */
+.credit-range-bar { display: flex; width: 100%; border-radius: 6px; overflow: hidden; font-size: 0.62rem; }
+.crb-seg { flex: 1; padding: 0.25rem 0.2rem; text-align: center; color: rgba(255,255,255,0.75); line-height: 1.3; font-weight: 600; }
+.crb-seg span { font-weight: 400; opacity: 0.85; display: block; }
+.crb-poor  { background: #ef4444; }
+.crb-fair  { background: #f97316; }
+.crb-good  { background: #eab308; }
+.crb-vgood { background: #22c55e; }
+.crb-exc   { background: #6366f1; }
+
+/* Score input */
+.credit-input-row { width: 100%; }
+.credit-input-label { font-size: 0.74rem; color: var(--muted); display: block; margin-bottom: 0.4rem; }
+.credit-score-input-wrap { display: flex; gap: 0.5rem; margin-bottom: 0.6rem; }
+.credit-score-input-wrap input {
+  flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+  color: var(--text); padding: 0.45rem 0.75rem; font-size: 1rem; font-weight: 700;
+  font-family: inherit; outline: none; transition: border-color 0.15s; text-align: center;
+}
+.credit-score-input-wrap input:focus { border-color: var(--accent); }
+.credit-score-input-wrap button {
+  background: var(--accent); border: none; border-radius: 8px; color: #fff;
+  padding: 0.45rem 1rem; font-size: 0.82rem; font-weight: 600; cursor: pointer;
+  transition: background 0.15s;
+}
+.credit-score-input-wrap button:hover { background: #4f46e5; }
+.credit-slider {
+  width: 100%; accent-color: var(--accent);
+  -webkit-appearance: none; height: 5px; border-radius: 99px;
+  background: var(--border); outline: none; cursor: pointer;
+}
+.credit-slider::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%;
+  background: var(--accent); cursor: pointer; box-shadow: 0 0 0 3px rgba(99,102,241,0.25);
+}
+
+/* ── Score bands ── */
+.credit-summary-card { display: flex; flex-direction: column; justify-content: space-between; }
+.credit-bands { display: flex; flex-direction: column; gap: 0.55rem; margin-bottom: 1rem; }
+.credit-band { display: flex; align-items: center; gap: 0.65rem; }
+.credit-band.active .cb-name { font-weight: 700; color: var(--text); }
+.credit-band.active .cb-bar { box-shadow: 0 0 0 2px var(--accent); border-radius: 4px; }
+.cb-color { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.cb-info { width: 88px; flex-shrink: 0; }
+.cb-name { font-size: 0.78rem; color: var(--muted); display: block; }
+.cb-range { font-size: 0.68rem; color: var(--muted); opacity: 0.7; }
+.cb-bar { flex: 1; height: 7px; background: var(--border); border-radius: 4px; overflow: hidden; }
+.cb-fill { height: 100%; border-radius: 4px; opacity: 0.35; transition: opacity 0.3s; }
+.credit-band.active .cb-fill { opacity: 1; }
+
+/* Progress to 740 */
+.credit-goal-bar-wrap { margin-top: auto; }
+.credit-goal-bar-label {
+  display: flex; justify-content: space-between;
+  font-size: 0.74rem; color: var(--muted); margin-bottom: 0.4rem;
+}
+.credit-goal-bar {
+  height: 10px; background: var(--border); border-radius: 99px;
+  overflow: visible; position: relative;
+}
+.credit-goal-fill {
+  height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2));
+  border-radius: 99px; transition: width 0.6s ease; width: 0%;
+}
+.credit-goal-marker {
+  position: absolute; top: -3px; width: 3px; height: 16px;
+  background: #fff; border-radius: 2px; opacity: 0.8;
+  /* positioned by JS at 740 mark = (740-300)/(850-300)*100 = 80% */
+  left: 80%;
+}
+
+/* ── FICO factors ── */
+.credit-factors-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0.85rem;
+}
+.credit-factor {
+  display: flex; gap: 0.85rem; align-items: flex-start;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 0.85rem;
+}
+.cf-donut {
+  position: relative; flex-shrink: 0; width: 52px; height: 52px;
+}
+.cf-donut svg { transform: rotate(-90deg); width: 100%; height: 100%; }
+.cf-donut span {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  font-size: 0.72rem; font-weight: 700; color: var(--text);
+}
+.cf-name { font-size: 0.82rem; font-weight: 600; color: var(--text); margin-bottom: 0.25rem; }
+.cf-desc { font-size: 0.74rem; color: var(--muted); line-height: 1.5; }
+
+/* ── Action plan ── */
+.credit-actions-list { display: flex; flex-direction: column; gap: 0.6rem; }
+.credit-action {
+  display: flex; gap: 0.85rem; align-items: flex-start;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 0.85rem 1rem;
+  transition: border-color 0.2s;
+}
+.credit-action:hover { border-color: var(--accent); }
+.ca-priority {
+  font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+  padding: 0.15rem 0.5rem; border-radius: 4px; flex-shrink: 0; margin-top: 0.1rem;
+}
+.ca-high   { background: rgba(239,68,68,0.15);  color: #fca5a5; }
+.ca-medium { background: rgba(234,179,8,0.15);  color: #fde047; }
+.ca-low    { background: rgba(99,102,241,0.15); color: #a5b4fc; }
+.ca-title  { font-size: 0.85rem; font-weight: 600; color: var(--text); margin-bottom: 0.2rem; }
+.ca-detail { font-size: 0.76rem; color: var(--muted); line-height: 1.55; }
+.ca-impact { font-size: 0.7rem; color: var(--accent2); margin-top: 0.25rem; font-weight: 600; }
+
+/* ── Timeline ── */
+.credit-timeline { display: flex; flex-direction: column; gap: 0; }
+.ct-step {
+  display: flex; gap: 1rem; align-items: flex-start; padding-bottom: 1.1rem;
+  position: relative;
+}
+.ct-step:not(:last-child)::before {
+  content: ''; position: absolute; left: 11px; top: 22px;
+  width: 2px; height: calc(100% - 12px); background: var(--border);
+}
+.ct-dot {
+  width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.72rem; font-weight: 700; border: 2px solid; margin-top: 0.1rem;
+}
+.ct-body { flex: 1; }
+.ct-time { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.15rem; }
+.ct-title { font-size: 0.86rem; font-weight: 600; color: var(--text); margin-bottom: 0.15rem; }
+.ct-detail { font-size: 0.76rem; color: var(--muted); line-height: 1.5; }
+
+/* ── Resources ── */
+.credit-resources-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0.75rem;
+}
+.credit-resource {
+  display: flex; gap: 0.85rem; align-items: flex-start; text-decoration: none;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+  padding: 0.85rem; transition: border-color 0.2s;
+}
+.credit-resource:hover { border-color: var(--accent2); }
+.cr-icon { font-size: 1.3rem; flex-shrink: 0; margin-top: 0.1rem; }
+.cr-name { font-size: 0.82rem; font-weight: 600; color: var(--text); margin-bottom: 0.2rem; }
+.cr-desc { font-size: 0.74rem; color: var(--muted); line-height: 1.5; }
+
 /* ─── v2 Responsive ─────────────────────────────────── */
 @media (max-width: 680px) {
   .news-hero-img { height: 200px; }

@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Upskill Dashboard</title>
-  <link rel="stylesheet" href="css/style.css?v=6" />
+  <link rel="stylesheet" href="css/style.css?v=7" />
   <style>
     .topic-list li.done a { text-decoration: line-through; opacity: 0.5; }
   </style>
@@ -27,6 +27,10 @@
         <button class="nav-tab" data-tab="jobs">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
           <span>Jobs</span>
+        </button>
+        <button class="nav-tab" data-tab="credit">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          <span>Credit</span>
         </button>
       </div>
     </div>
@@ -269,6 +273,205 @@
     </div>
   </div>
 
+  <!-- ══════════════════════════════════════════════════
+       TAB 4: CREDIT SCORE
+  ══════════════════════════════════════════════════ -->
+  <div id="tab-credit" class="tab-panel">
+    <div class="credit-inner">
+
+      <!-- Header -->
+      <div class="credit-header-row">
+        <div>
+          <h2 class="credit-page-title">Credit Score Dashboard</h2>
+          <p class="credit-page-sub">Goal: <strong>740</strong> (Very Good) · FICO Score 8 model · Factors based on official bureau weights</p>
+        </div>
+        <div class="credit-monitors">
+          <span style="font-size:0.72rem;color:var(--muted)">Check free:</span>
+          <a class="credit-mon-link" href="https://www.creditkarma.com" target="_blank" rel="noopener">Credit Karma</a>
+          <a class="credit-mon-link" href="https://creditjourney.chase.com" target="_blank" rel="noopener">Chase Journey</a>
+          <a class="credit-mon-link" href="https://www.discover.com/free-credit-score/" target="_blank" rel="noopener">Discover</a>
+          <a class="credit-mon-link" href="https://www.annualcreditreport.com" target="_blank" rel="noopener">AnnualCreditReport</a>
+        </div>
+      </div>
+
+      <!-- Top row: gauge + score input -->
+      <div class="credit-top-grid">
+
+        <!-- Gauge card -->
+        <div class="credit-card credit-gauge-card">
+          <div class="credit-gauge-wrap">
+            <canvas id="credit-gauge" width="280" height="160"></canvas>
+            <div class="credit-gauge-overlay">
+              <div class="credit-gauge-score" id="gauge-score-display">—</div>
+              <div class="credit-gauge-label" id="gauge-label-display">Enter your score</div>
+            </div>
+          </div>
+          <div class="credit-range-bar">
+            <div class="crb-seg crb-poor">300<br><span>Poor</span></div>
+            <div class="crb-seg crb-fair"><span>Fair</span></div>
+            <div class="crb-seg crb-good"><span>Good</span></div>
+            <div class="crb-seg crb-vgood"><span>Very Good</span></div>
+            <div class="crb-seg crb-exc">850<br><span>Exceptional</span></div>
+          </div>
+          <div class="credit-input-row">
+            <label class="credit-input-label">Your current score</label>
+            <div class="credit-score-input-wrap">
+              <input type="number" id="credit-score-input" min="300" max="850" placeholder="e.g. 680" />
+              <button id="credit-score-btn">Update</button>
+            </div>
+            <input type="range" id="credit-score-slider" min="300" max="850" step="1" value="300" class="credit-slider" />
+          </div>
+        </div>
+
+        <!-- Score breakdown -->
+        <div class="credit-card credit-summary-card">
+          <div class="credit-card-title">Where You Stand</div>
+          <div class="credit-bands">
+            <div class="credit-band" data-range="poor">
+              <div class="cb-color" style="background:#ef4444"></div>
+              <div class="cb-info"><span class="cb-name">Poor</span><span class="cb-range">300–579</span></div>
+              <div class="cb-bar"><div class="cb-fill" style="background:#ef4444;width:100%"></div></div>
+            </div>
+            <div class="credit-band" data-range="fair">
+              <div class="cb-color" style="background:#f97316"></div>
+              <div class="cb-info"><span class="cb-name">Fair</span><span class="cb-range">580–669</span></div>
+              <div class="cb-bar"><div class="cb-fill" style="background:#f97316;width:100%"></div></div>
+            </div>
+            <div class="credit-band" data-range="good">
+              <div class="cb-color" style="background:#eab308"></div>
+              <div class="cb-info"><span class="cb-name">Good</span><span class="cb-range">670–739</span></div>
+              <div class="cb-bar"><div class="cb-fill" style="background:#eab308;width:100%"></div></div>
+            </div>
+            <div class="credit-band" data-range="vgood">
+              <div class="cb-color" style="background:#22c55e"></div>
+              <div class="cb-info"><span class="cb-name">Very Good</span><span class="cb-range">740–799</span></div>
+              <div class="cb-bar"><div class="cb-fill" style="background:#22c55e;width:100%"></div></div>
+            </div>
+            <div class="credit-band" data-range="exc">
+              <div class="cb-color" style="background:#6366f1"></div>
+              <div class="cb-info"><span class="cb-name">Exceptional</span><span class="cb-range">800–850</span></div>
+              <div class="cb-bar"><div class="cb-fill" style="background:#6366f1;width:100%"></div></div>
+            </div>
+          </div>
+          <div class="credit-goal-bar-wrap">
+            <div class="credit-goal-bar-label">
+              <span>Progress to 740</span>
+              <span id="credit-pct-label">—</span>
+            </div>
+            <div class="credit-goal-bar">
+              <div class="credit-goal-fill" id="credit-goal-fill"></div>
+              <div class="credit-goal-marker" title="Goal: 740"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- FICO Factor weights -->
+      <div class="credit-card" style="margin-bottom:1rem">
+        <div class="credit-card-title">What Makes Up Your FICO Score</div>
+        <div class="credit-factors-grid">
+          <div class="credit-factor">
+            <div class="cf-donut" style="--pct:35%;--color:#6366f1">
+              <svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="15.9" fill="none" stroke="#2a2d3a" stroke-width="3"/><circle cx="18" cy="18" r="15.9" fill="none" stroke="#6366f1" stroke-width="3" stroke-dasharray="35 65" stroke-dashoffset="25"/></svg>
+              <span>35%</span>
+            </div>
+            <div class="cf-info">
+              <div class="cf-name">Payment History</div>
+              <div class="cf-desc">Single biggest factor. One 30-day late payment can drop your score 50–100 pts. Set autopay for minimums on every account.</div>
+            </div>
+          </div>
+          <div class="credit-factor">
+            <div class="cf-donut" style="--pct:30%;--color:#22c55e">
+              <svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="15.9" fill="none" stroke="#2a2d3a" stroke-width="3"/><circle cx="18" cy="18" r="15.9" fill="none" stroke="#22c55e" stroke-width="3" stroke-dasharray="30 70" stroke-dashoffset="25"/></svg>
+              <span>30%</span>
+            </div>
+            <div class="cf-info">
+              <div class="cf-name">Credit Utilization</div>
+              <div class="cf-desc">Keep total utilization under 30% — ideally under 10%. If you have a $10k limit, keep balance under $1k at statement close.</div>
+            </div>
+          </div>
+          <div class="credit-factor">
+            <div class="cf-donut" style="--pct:15%;--color:#22d3ee">
+              <svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="15.9" fill="none" stroke="#2a2d3a" stroke-width="3"/><circle cx="18" cy="18" r="15.9" fill="none" stroke="#22d3ee" stroke-width="3" stroke-dasharray="15 85" stroke-dashoffset="25"/></svg>
+              <span>15%</span>
+            </div>
+            <div class="cf-info">
+              <div class="cf-name">Length of Credit History</div>
+              <div class="cf-desc">Average age of all accounts. Never close your oldest card. A 2-year-old average age scores lower than a 7-year average.</div>
+            </div>
+          </div>
+          <div class="credit-factor">
+            <div class="cf-donut" style="--pct:10%;--color:#f97316">
+              <svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="15.9" fill="none" stroke="#2a2d3a" stroke-width="3"/><circle cx="18" cy="18" r="15.9" fill="none" stroke="#f97316" stroke-width="3" stroke-dasharray="10 90" stroke-dashoffset="25"/></svg>
+              <span>10%</span>
+            </div>
+            <div class="cf-info">
+              <div class="cf-name">Credit Mix</div>
+              <div class="cf-desc">Having both revolving (credit cards) and installment (auto/student loans) credit helps. Don't open accounts just for this.</div>
+            </div>
+          </div>
+          <div class="credit-factor">
+            <div class="cf-donut" style="--pct:10%;--color:#eab308">
+              <svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="15.9" fill="none" stroke="#2a2d3a" stroke-width="3"/><circle cx="18" cy="18" r="15.9" fill="none" stroke="#eab308" stroke-width="3" stroke-dasharray="10 90" stroke-dashoffset="25"/></svg>
+              <span>10%</span>
+            </div>
+            <div class="cf-info">
+              <div class="cf-name">New Credit (Inquiries)</div>
+              <div class="cf-desc">Hard inquiries stay on your report 2 years but only affect score ~1 year. Each new application can drop score 5–10 pts temporarily.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action plan — dynamic based on score -->
+      <div class="credit-card" id="credit-action-plan">
+        <div class="credit-card-title">Your Action Plan to Reach 740</div>
+        <div id="credit-actions-list">
+          <div style="color:var(--muted);font-size:0.85rem;padding:0.5rem 0">Enter your current score above to see a personalised action plan.</div>
+        </div>
+      </div>
+
+      <!-- Timeline estimate -->
+      <div class="credit-card" id="credit-timeline-card" style="display:none">
+        <div class="credit-card-title">Realistic Timeline</div>
+        <div class="credit-timeline" id="credit-timeline"></div>
+      </div>
+
+      <!-- Dispute & monitoring -->
+      <div class="credit-card">
+        <div class="credit-card-title">Free Tools & Resources</div>
+        <div class="credit-resources-grid">
+          <a class="credit-resource" href="https://www.annualcreditreport.com" target="_blank" rel="noopener">
+            <div class="cr-icon">📄</div>
+            <div><div class="cr-name">AnnualCreditReport.com</div><div class="cr-desc">Free weekly reports from Equifax, Experian & TransUnion. Official government-mandated site.</div></div>
+          </a>
+          <a class="credit-resource" href="https://www.creditkarma.com" target="_blank" rel="noopener">
+            <div class="cr-icon">📊</div>
+            <div><div class="cr-name">Credit Karma</div><div class="cr-desc">Free VantageScore from TransUnion + Equifax. Updated weekly. Good for tracking trends.</div></div>
+          </a>
+          <a class="credit-resource" href="https://creditjourney.chase.com" target="_blank" rel="noopener">
+            <div class="cr-icon">🏦</div>
+            <div><div class="cr-name">Chase Credit Journey</div><div class="cr-desc">Free Experian FICO Score 8 — the exact score most lenders use. No Chase account needed.</div></div>
+          </a>
+          <a class="credit-resource" href="https://www.experian.com/consumer-products/free-credit-report.html" target="_blank" rel="noopener">
+            <div class="cr-icon">🔍</div>
+            <div><div class="cr-name">Experian Free</div><div class="cr-desc">Free Experian report + FICO Score. Also offers Experian Boost to add utility/streaming payments.</div></div>
+          </a>
+          <a class="credit-resource" href="https://consumer.ftc.gov/articles/disputing-errors-your-credit-reports" target="_blank" rel="noopener">
+            <div class="cr-icon">✏️</div>
+            <div><div class="cr-name">FTC: How to Dispute Errors</div><div class="cr-desc">Official FTC guide. Disputing inaccurate negative items is one of the fastest ways to raise your score.</div></div>
+          </a>
+          <a class="credit-resource" href="https://www.consumerfinance.gov/consumer-tools/credit-reports-and-scores/" target="_blank" rel="noopener">
+            <div class="cr-icon">🏛️</div>
+            <div><div class="cr-name">CFPB Credit Guide</div><div class="cr-desc">Consumer Financial Protection Bureau's official guide on credit reports and improving your score.</div></div>
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
   <footer>
     <p>Built to learn. One topic at a time.</p>
   </footer>
@@ -285,9 +488,10 @@
       });
     });
   </script>
-  <script src="js/main.js?v=6"></script>
-  <script src="js/news.js?v=6"></script>
-  <script src="js/jobs.js?v=6"></script>
-  <script src="js/agent.js?v=6"></script>
+  <script src="js/main.js?v=7"></script>
+  <script src="js/news.js?v=7"></script>
+  <script src="js/jobs.js?v=7"></script>
+  <script src="js/agent.js?v=7"></script>
+  <script src="js/credit.js?v=7"></script>
 </body>
 </html>
